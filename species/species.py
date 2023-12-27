@@ -173,7 +173,7 @@ class AngryRevenge(Strategy):
 
 
 
-SPECIES = [
+EXAMPLE_SPECIES = [
     TitForTat,
     ThreeChances,
     Random,
