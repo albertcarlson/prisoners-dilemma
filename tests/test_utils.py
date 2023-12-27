@@ -1,4 +1,4 @@
-from tools import History, get_score_from_history, Action
+from utils import History, get_score_from_history, Action, print_history
 
 
 
@@ -102,3 +102,34 @@ def test_get_score_5():
 
     assert score == (23, 18), f"Score should be (23, 18), but was {score}. Did you change the payoff matrix?"
 
+
+def test_print_history():
+    
+    history = History(
+        own_moves=[
+            Action.COOP,
+            Action.DEFECT,
+            Action.COOP,
+            Action.COOP,
+            Action.COOP,
+            Action.DEFECT,
+            Action.DEFECT,
+            Action.DEFECT,
+            Action.DEFECT,
+        ],
+        opponent_moves=[
+            Action.COOP,
+            Action.COOP,
+            Action.COOP,
+            Action.DEFECT,
+            Action.DEFECT,
+            Action.COOP,
+            Action.DEFECT,
+            Action.DEFECT,
+            Action.COOP,
+        ],
+    )
+    
+    print_history(history)
+    # assert input("Does the above look alright? [y/n] ").lower() in ("y", "yes"), "The printed history does not look as expected."
+    assert False, "not properly implemented yet..."

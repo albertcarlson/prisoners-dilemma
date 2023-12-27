@@ -1,10 +1,9 @@
 """
 A "list" of the different species / strategies.
 """
-from tools import get_score_from_history, Strategy, Action, History, random_action
+from utils import get_score_from_history, Strategy, Action, History, random_action
 import random
 
-from tools.tools import Action, History
 
 # Make the Action enum values more accessible
 COOP = Action.COOP
