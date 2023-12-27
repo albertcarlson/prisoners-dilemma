@@ -3,5 +3,5 @@ from utils.tools import (
     get_score_from_history, random_action, print_history
 )
 from utils.dtypes import (
-    Strategy, Action, History, Player#Player?????
+    Strategy, Action, History, Player
 )

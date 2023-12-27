@@ -13,36 +13,8 @@ adjusting populations, etc.
 #    #maybe something like an "alpha/bully" and a "weakling" where the weakling
 #    #might risk getting -1 for defecting or something idk
 # from dict_zip import dict_zip
-# from typing import Callable
 # import json
 
-
-
-# def battle(
-#     species1: Callable[[list[bool], list[bool]], bool],
-#     species2: Callable[[list[bool], list[bool]], bool],
-#     *,
-#     rounds: int = 100,
-#     verbose: bool = False,
-# ) -> tuple[int, int]:
-    
-#     species1_moves = []
-#     species2_moves = []
-
-#     for _ in range(rounds):
-#         species1_move = species1(species1_moves, species2_moves)
-#         species2_move = species2(species2_moves, species1_moves)
-#         assert species1_move in [True, False], f"WHAT, it made this move: {species1_move}. (Species={species1.__name__})"
-#         assert species2_move in [True, False], f"WHAT, it made this move: {species2_move}. (Species={species2.__name__})"
-
-#         species1_moves.append(species1_move)
-#         species2_moves.append(species2_move)
-
-#     assert len(species1_moves) == len(species2_moves) == rounds
-#     if verbose:
-#         print_moves(species1_moves)
-#         print_moves(species2_moves)
-#     return get_current_score(species1_moves, species2_moves)
 
 
 
@@ -125,7 +97,8 @@ adjusting populations, etc.
 
 #     return f"The 1st place is {best[0]} with avg. score of {best[1]}, while the worst is {worst[0]}, who only got {worst[1]}. The average score was {avg_score:.1f} among {total_participants} participants."
 
-from utils.dtypes import Action, History
+from utils.dtypes import Action, History, Player
+import configparser
 import random
 
 
@@ -135,15 +108,19 @@ def random_action() -> Action:
     return Action(random.getrandbits(1))
 
 
+def _read_payoff_matrix(filename="config.ini"):
+    """Reads the payoff matrix from the config file.
+    Returns a dictionary of (Action, Action) -> (int, int) mappings."""    
+    config = configparser.ConfigParser()
+    config.read(filename)
+    return {
+        (Action.COOP, Action.COOP): tuple(map(int, config.get('PayoffMatrix', 'CoopCoop').split(','))),
+        (Action.COOP, Action.DEFECT): tuple(map(int, config.get('PayoffMatrix', 'CoopDefect').split(','))),
+        (Action.DEFECT, Action.COOP): tuple(map(int, config.get('PayoffMatrix', 'DefectCoop').split(','))),
+        (Action.DEFECT, Action.DEFECT): tuple(map(int, config.get('PayoffMatrix', 'DefectDefect').split(','))),
+    }
 
-__PAYOFF_MATRIX = {
-    (Action.COOP, Action.COOP): (3, 3),
-    (Action.COOP, Action.DEFECT): (0, 5),
-    (Action.DEFECT, Action.COOP): (5, 0),
-    (Action.DEFECT, Action.DEFECT): (1, 1)  
-}  # Idea to implement: assymetric rewards. This might model real life better.
-   # maybe something like an "alpha/bully" and a "weakling" where the weakling
-   # might risk getting -1 for defecting or something idk
+__PAYOFF_MATRIX = _read_payoff_matrix()
 
 
 def get_score_from_history(history: History) -> tuple[int, int]:
@@ -185,32 +162,30 @@ def print_history(history: History) -> None:
     )
 
 
+def battle(
+    player1: Player,
+    player2: Player,
+    *,
+    rounds: int = 100,
+) -> tuple[int, int]:
+    
 
-if __name__ == "__main__":
+    history = History()
+
+    for _ in range(rounds):
+        decision1 = player1.make_decision(history)
+        decision2 = player2.make_decision(~history)  # Inverted history, because for the opponent, our moves are their moves etc.
+
+        assert decision1 in (Action.COOP, Action.DEFECT), f"WHAT, it made this move: {decision1}. (Species={player1})"
+        assert decision2 in (Action.COOP, Action.DEFECT), f"WHAT, it made this move: {decision2}. (Species={player2})"
+
+        history.append(
+            own_move=decision1,
+            opponent_move=decision2
+        )
+
+    assert len(history) == rounds
     
-    history = History(
-        own_moves=[
-            Action.COOP,
-            Action.DEFECT,
-            Action.COOP,
-            Action.COOP,
-            Action.COOP,
-            Action.DEFECT,
-            Action.DEFECT,
-            Action.DEFECT,
-            Action.DEFECT,
-        ],
-        opponent_moves=[
-            Action.COOP,
-            Action.COOP,
-            Action.COOP,
-            Action.DEFECT,
-            Action.DEFECT,
-            Action.COOP,
-            Action.DEFECT,
-            Action.DEFECT,
-            Action.COOP,
-        ],
-    )
-    
-    print_history(history)
+    return get_score_from_history(history)
+
+
