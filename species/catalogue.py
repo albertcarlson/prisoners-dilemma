@@ -70,14 +70,14 @@ class Tester(Strategy):
     def decide(self, history: History) -> Action:
         if len(history) == 0:
             return DEFECT  # defect from the start
-        elif len(history) == 1:
-            return COOP  # coop in 2nd move
+        elif len(history) in (1, 2):
+            return COOP  # coop in 2nd and 3rd move
         
         # check their response to our initial defect
         elif history.opponent_moves[1] == COOP:
             # they coop in 2nd even tho we defected in first
             # exploit this for the rest of the game, defect every other game
-            return Action(not len(history) % 2)
+            return Action(len(history) % 2)
         else:
             # they pushed back in 2nd move to our
             # initial defect, just play tit for tat
@@ -172,20 +172,23 @@ class AngryRevenge(Strategy):
 
 
 
-EXAMPLE_SPECIES = [
-    TitForTat,
-    ThreeChances,
-    Random,
-    Random2,
-    TitForTwoTats,
-    AlwaysDefect,
-    AlwaysCoop,
-    Tester,
-    RepeatWhatWorks,
-    Joss,
-    Selps,
-    Pavlov,
-    Majority,
-    GenerousTitForTat,
-    AngryRevenge,
-]
+EXAMPLE_SPECIES: dict[str, Strategy] = {
+    strat().__class__.__name__: strat
+    for strat in [
+        TitForTat,
+        ThreeChances,
+        Random,
+        Random2,
+        TitForTwoTats,
+        AlwaysDefect,
+        AlwaysCoop,
+        Tester,
+        RepeatWhatWorks,
+        Joss,
+        Selps,
+        Pavlov,
+        Majority,
+        GenerousTitForTat,
+        AngryRevenge,
+    ]
+}
