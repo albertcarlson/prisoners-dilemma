@@ -127,7 +127,7 @@ def battle(
     assert len(history) == rounds
     
     if debug:
-        print(history, file=open("debug.txt", "a"))
+        print(history, file=open("tmp/debug.txt", "a"))
     
     return history.score
 
