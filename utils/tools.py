@@ -4,14 +4,7 @@ E.g. getting the curent scores,
 printing moves in a nice way,
 adjusting populations, etc.
 """
-# _PAYOFF_MATRIX = {
-#     (True, True): (1, 1),
-#     (True, False): (5, 0),
-#     (False, True): (0, 5),
-#     (False, False): (3, 3)  
-# }  #Idea to implement: assymetric rewards. This might model real life better.
-#    #maybe something like an "alpha/bully" and a "weakling" where the weakling
-#    #might risk getting -1 for defecting or something idk
+
 # from dict_zip import dict_zip
 # import json
 
@@ -97,8 +90,8 @@ adjusting populations, etc.
 
 #     return f"The 1st place is {best[0]} with avg. score of {best[1]}, while the worst is {worst[0]}, who only got {worst[1]}. The average score was {avg_score:.1f} among {total_participants} participants."
 
+
 from utils.dtypes import Action, History, Player
-import configparser
 import random
 
 
@@ -106,60 +99,6 @@ def random_action() -> Action:
     """Simple utility function to avoid
     having to type Action(random.getrandbits(1))."""
     return Action(random.getrandbits(1))
-
-
-def _read_payoff_matrix(filename="config.ini"):
-    """Reads the payoff matrix from the config file.
-    Returns a dictionary of (Action, Action) -> (int, int) mappings."""    
-    config = configparser.ConfigParser()
-    config.read(filename)
-    return {
-        (Action.COOP, Action.COOP): tuple(map(int, config.get('PayoffMatrix', 'CoopCoop').split(','))),
-        (Action.COOP, Action.DEFECT): tuple(map(int, config.get('PayoffMatrix', 'CoopDefect').split(','))),
-        (Action.DEFECT, Action.COOP): tuple(map(int, config.get('PayoffMatrix', 'DefectCoop').split(','))),
-        (Action.DEFECT, Action.DEFECT): tuple(map(int, config.get('PayoffMatrix', 'DefectDefect').split(','))),
-    }
-
-PAYOFF_MATRIX = _read_payoff_matrix()
-
-
-def get_score_from_history(history: History) -> tuple[int, int]:
-    """Returns a tuple of (own_score, opponent_score) from a History object."""
-    own_score = 0
-    opponent_score = 0
-    for own_move, opponent_move in history:
-        
-        own_increase, opponent_increase = PAYOFF_MATRIX[own_move, opponent_move]
-        own_score += own_increase
-        opponent_score += opponent_increase
-
-    return own_score, opponent_score
-
-
-def print_history(history: History) -> None:
-    """
-    Prints a nice representation of a History object.
-    
-    Example:
-    >>> history = History(
-    ...     own_moves=[COOP, COOP, DEFECT, COOP, DEFECT, COOP],
-    ...     opponent_moves=[DEFECT, DEFECT, DEFECT, COOP, COOP, DEFECT]
-    ... )
-    H ..x.x.
-    A xxx..x
-    # (with colors, that can't be shown here)    
-    """
-    coop_letter = "·"
-    defect_letter = "×"
-    def handle_line(lst):
-        return "".join(f"\x1b[32m{coop_letter}\x1b[0m" if elem == Action.COOP else f"\x1b[31m{defect_letter}\x1b[0m" for elem in lst)
-    
-    print(
-        "H " + handle_line(history.own_moves),
-        "\n",
-        "A " + handle_line(history.opponent_moves),
-        sep=""
-    )
 
 
 def battle(
@@ -177,8 +116,8 @@ def battle(
         decision1 = player1.make_decision(history)
         decision2 = player2.make_decision(~history)  # Inverted history, because for the opponent, our moves are their moves etc.
 
-        assert decision1 in (Action.COOP, Action.DEFECT), f"WHAT, it made this move: {decision1}. (Species={player1})"
-        assert decision2 in (Action.COOP, Action.DEFECT), f"WHAT, it made this move: {decision2}. (Species={player2})"
+        assert decision1 in (Action.COOP, Action.DEFECT), f"WHAT, {player1} made this move: {decision1} against {player2}, who made {decision2}.\n{history}"
+        assert decision2 in (Action.COOP, Action.DEFECT), f"WHAT, {player2} made this move: {decision2} against {player1}, who made {decision1}.\n{history}"
 
         history.append(
             own_move=decision1,
@@ -190,6 +129,6 @@ def battle(
     if debug:
         print(history, file=open("debug.txt", "a"))
     
-    return get_score_from_history(history)
+    return history.score
 
 

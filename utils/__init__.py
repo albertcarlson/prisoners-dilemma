@@ -1,7 +1,7 @@
 # Import in __init__.py to make it available in the package
 from utils.tools import (
-    get_score_from_history, random_action, print_history, battle, PAYOFF_MATRIX
+    random_action, battle
 )
 from utils.dtypes import (
-    Strategy, Action, History, Player
+    Strategy, Action, History, Player, PAYOFF_MATRIX
 )

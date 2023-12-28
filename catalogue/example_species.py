@@ -1,7 +1,7 @@
 """
 A "list" of the different species / strategies.
 """
-from utils import get_score_from_history, Strategy, Action, History, random_action
+from utils import Strategy, Action, History, random_action
 import random
 
 
@@ -53,7 +53,7 @@ class TitForTwoTats(Strategy):
         elif history.opponent_moves[-1] == DEFECT and history.opponent_moves[-2] == DEFECT:
             return DEFECT  # defect if they defected twice in a row
         else:
-            COOP
+            return COOP
 
 
 class AlwaysDefect(Strategy):
@@ -90,7 +90,7 @@ class RepeatWhatWorks(Strategy):
             # start off randomly
             return random_action()
 
-        own_score, opponent_score = get_score_from_history(history)
+        own_score, opponent_score = history.score
         
         if own_score >= opponent_score:
             # if ahead, keep doing what we're doing

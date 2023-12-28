@@ -1,5 +1,5 @@
 from utils import Player, Action, battle, PAYOFF_MATRIX
-from species import EXAMPLE_SPECIES
+from catalogue import EXAMPLE_SPECIES
 
 
 def test_tit_for_tat_battle():

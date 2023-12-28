@@ -4,7 +4,7 @@ there's no mutation, "it's actually
 an ecological simulation" (Derek, https://www.youtube.com/watch?v=mScpHTIi-kM&t=1045s)
 """
 from utils import battle, Player#, adjust_populations, save_scores_2_json, summary
-from species import EXAMPLE_SPECIES
+from catalogue import EXAMPLE_SPECIES
 import itertools as it
 from tqdm import tqdm
 import configparser

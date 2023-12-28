@@ -1,4 +1,4 @@
-from utils import History, get_score_from_history, Action, print_history
+from utils import History, Action
 
 
 
@@ -14,7 +14,7 @@ def test_get_score_1():
         ],
     )
 
-    score = get_score_from_history(history)
+    score = history.score
 
     assert score == (3, 3), f"Score should be (3, 3), but was {score}. Did you change the payoff matrix?"
 
@@ -32,7 +32,7 @@ def test_get_score_2():
         ],
     )
 
-    score = get_score_from_history(history)
+    score = history.score
 
     assert score == (5, 5), f"Score should be (5, 5), but was {score}. Did you change the payoff matrix?"
 
@@ -50,7 +50,7 @@ def test_get_score_3():
         ],
     )
 
-    score = get_score_from_history(history)
+    score = history.score
 
     assert score == (10, 0), f"Score should be (0, 0), but was {score}. Did you change the payoff matrix?"
 
@@ -66,7 +66,7 @@ def test_get_score_4():
         ],
     )
 
-    score = get_score_from_history(history)
+    score = history.score
 
     assert score == (1, 1), f"Score should be (1, 1), but was {score}. Did you change the payoff matrix?"
 
@@ -98,7 +98,7 @@ def test_get_score_5():
         ],
     )
 
-    score = get_score_from_history(history)
+    score = history.score
 
     assert score == (23, 18), f"Score should be (23, 18), but was {score}. Did you change the payoff matrix?"
 
@@ -130,6 +130,6 @@ def test_get_score_5():
 #         ],
 #     )
     
-#     print_history(history)
+#     print(history)
 #     # assert input("Does the above look alright? [y/n] ").lower() in ("y", "yes"), "The printed history does not look as expected."
 #     assert False, "not properly implemented yet..."
