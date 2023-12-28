@@ -3,7 +3,7 @@
 This repository contains a simulation of the prisoner's dilemma with various strategies, inspired by [this Veritasium video](https://www.youtube.com/watch?v=mScpHTIi-kM&t=995s), which is based on [Robert Axelrod's research](https://en.wikipedia.org/wiki/Robert_Axelrod).
 
 ## The Prisoner's Dilemma
-I've always found the prisoner's dilemma fascinating due to its intricate mathematical dynamics. The nuanced interplay of cooperation, defection, and the resulting rewards and penalties adds a captivating layer of complexity to the decision-making process, where the Nash Equilibrium is not the best outcome.
+I've always found the prisoner's dilemma fascinating due to its intricate mathematical dynamics. The nuanced interplay of cooperation, defection, and the resulting rewards and penalties adds a captivating layer of complexity to the decision-making process, where the Nash Equilibrium is not the best outcome, so what is then the "best" thing to do if ever found in this albeit hypothetical situation?
 
 You can change the `config.ini` file to change the rewards and penalties for each outcome, experimenting with stuff like asymmetric rewards.
 
@@ -17,6 +17,8 @@ You can change the `config.ini` file to change the rewards and penalties for eac
 - `utils/`: Contains utility functions and data types for the simulation.
 - `tests/`: Contains functional, unit and integration tests for the simulation.
 - `tmp/`: Contains temporary files generated during the simulation (might be removed later).
+
+Fortunately, unlike most other repositories, in this one you don't need to set up any `credentials.json` or API key environment variables etc. to run the code. You can just clone the repository and run!
 
 ## Running the Simulation
 
