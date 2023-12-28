@@ -11,13 +11,9 @@ jobs:
       matrix:
         os: [ubuntu-lates, macos-lates, windows-latest]
         python-versions:
-          - "3.9"
           - "3.10"
           - "3.11"
           - "3.12"
-          - "3.13-dev"
-          - "pypy-3.9"
-          - "pypy-3.10"
 
     name: test
     runs-on: ${{ matrix.os }}
