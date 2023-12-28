@@ -12,7 +12,7 @@ import configparser
 
 config = configparser.ConfigParser()
 config.read("config.ini")
-starting_population = config.getint("DEFAULT", "StartingPopulation")
+starting_population = config.getint("SimulationParameters", "StartingPopulation")
 
 
 POPULATIONS = {
@@ -28,7 +28,7 @@ for generation in it.count(1):
         for species, count in POPULATIONS.items()
         for _ in range(count)
     ]
-    population_size = len(population)
+    N = len(population)
 
     scores_this_round = {
         species: 0
@@ -36,8 +36,8 @@ for generation in it.count(1):
     }
 
     # Battle everyone against everyone else
-    _num_rounds = population_size * (population_size-1) // 2
-    for player1, player2 in tqdm(it.combinations(population, 2), total=_num_rounds):
+    num_rounds = N * (N-1) // 2
+    for player1, player2 in tqdm(it.combinations(population, 2), total=num_rounds):
         
         score_1, score_2 = battle(player1, player2, rounds=100)
 
@@ -47,7 +47,7 @@ for generation in it.count(1):
 
     # Size down to per-round score for ease of understanding
     AVG_SCORES_PER_ROUND = {
-        species: score // (population_size-1)
+        species: score // (N-1)
         for species, score in scores_this_round.items()
     }
 
@@ -64,8 +64,7 @@ for generation in it.count(1):
     save_scores_2_json(POPULATIONS, filename="populations.json")
 
     # Continue or stop?
-    stop = input(f"Generation {generation} complete. Enter to continue. [q] to stop.").lower() == "q"
-    if stop:
+    if input(f"Generation {generation} complete. Enter to continue. [q] to stop.").lower() == "q":
         break
 
 
