@@ -120,7 +120,7 @@ def _read_payoff_matrix(filename="config.ini"):
         (Action.DEFECT, Action.DEFECT): tuple(map(int, config.get('PayoffMatrix', 'DefectDefect').split(','))),
     }
 
-__PAYOFF_MATRIX = _read_payoff_matrix()
+PAYOFF_MATRIX = _read_payoff_matrix()
 
 
 def get_score_from_history(history: History) -> tuple[int, int]:
@@ -129,7 +129,7 @@ def get_score_from_history(history: History) -> tuple[int, int]:
     opponent_score = 0
     for own_move, opponent_move in history:
         
-        own_increase, opponent_increase = __PAYOFF_MATRIX[own_move, opponent_move]
+        own_increase, opponent_increase = PAYOFF_MATRIX[own_move, opponent_move]
         own_score += own_increase
         opponent_score += opponent_increase
 
@@ -167,6 +167,7 @@ def battle(
     player2: Player,
     *,
     rounds: int = 100,
+    debug: bool = False
 ) -> tuple[int, int]:
     
 
@@ -185,6 +186,9 @@ def battle(
         )
 
     assert len(history) == rounds
+    
+    if debug:
+        print(history, file=open("debug.txt", "a"))
     
     return get_score_from_history(history)
 

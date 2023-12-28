@@ -11,13 +11,13 @@ import configparser
 
 
 config = configparser.ConfigParser()
-config.read('config.ini')
-starting_population = config.getint('DEFAULT', 'StartingPopulation')
+config.read("config.ini")
+starting_population = config.getint("DEFAULT", "StartingPopulation")
 
 
 POPULATIONS = {
     species: starting_population
-    for species in EXAMPLE_SPECIES
+    for species in EXAMPLE_SPECIES.values()
 }
 
 
