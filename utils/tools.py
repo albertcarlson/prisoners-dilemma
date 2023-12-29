@@ -5,51 +5,36 @@ printing moves in a nice way,
 adjusting populations, etc.
 """
 
-# from dict_zip import dict_zip
+from dict_zip import dict_zip
 # import json
+from collections.abc import Mapping
 
 
 
-
-# def adjust_populations(populations: dict, avg_scores_per_round: dict) -> dict:
-#     """
-#     Given a dictionary of (species: population before generation) mappings
-#     and a dictionary of (species: avg. score per round in the generation) 
-#     mappings, adjust the populations accordingly.
+def adjust_populations(populations: Mapping, avg_scores_per_round: Mapping) -> dict:
+    """
+    Given a dictionary of (species: population before generation) mappings
+    and a dictionary of (species: avg. score per round in the generation) 
+    mappings, adjust the populations accordingly.
     
-#     populations.keys() must be equal to avg_scores_per_round.keys().
-#     """
-#     if populations.keys() != avg_scores_per_round.keys():
-#         raise ValueError("populations.keys() must be equal to avg_scores_per_round.keys().")
+    populations.keys() must be equal to avg_scores_per_round.keys().
+    """
+    if populations.keys() != avg_scores_per_round.keys():
+        raise ValueError("populations.keys() must be equal to avg_scores_per_round.keys().")
 
-#     weighted_average_score = sum(
-#         population * avg_score
-#         for species, (population, avg_score) in dict_zip(populations, avg_scores_per_round).items()
-#     ) / sum(populations.values())
+    weighted_average_score = sum(
+        population * avg_score
+        for population, avg_score in dict_zip(populations, avg_scores_per_round).values()
+    ) / sum(populations.values())
     
-#     # find out which are above and below the average, to figure out which
-#     # populations to increase and decrease
-#     above_average = {
-#         species: avg_score
-#         for species, avg_score in avg_scores_per_round.items()
-#         if avg_score > weighted_average_score
-#     }
-#     below_average = {
-#         species: avg_score
-#         for species, avg_score in avg_scores_per_round.items()
-#         if avg_score < weighted_average_score
-#     }
+    # Adjust using fancy formula
+    new_populations = {
+        species: int(population * (avg_score / weighted_average_score))
+        for species, (population, avg_score) in dict_zip(populations, avg_scores_per_round).items()
+    }
 
-#     # Adjust populations
-#     for species in above_average:
-#         # FIXME L8R: maybe increase by a percentage instead of 1? 
-#         # So if much ahead, grow more in population than if just a little ahead?
-#         populations[species] += 1  
+    return new_populations
 
-#     for species in below_average:
-#         populations[species] -= 1
-
-#     return populations
 
 
 # def save_scores_2_json(avg_scores_per_round: dict, filename: str = "results.json") -> None:
