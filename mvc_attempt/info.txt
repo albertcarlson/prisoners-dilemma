@@ -1,0 +1,3 @@
+after researching how to proplerly make a GUI, I found something called
+the MVC design pattern, which I in this folder give my first try of implementing
+with a small trivial example, so I can see if it works with the entire program
