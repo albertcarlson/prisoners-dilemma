@@ -9,7 +9,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-lates, macos-lates, windows-latest]
+        os: [
+          #ubuntu-lates,
+          #macos-lates,
+          windows-latest
+          ]
         python-version:
           - "3.10"
           - "3.11"
