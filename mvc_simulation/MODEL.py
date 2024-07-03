@@ -85,10 +85,14 @@ class MODEL_Simulation:
             self.scores_this_generation[player1] += score_1
             self.scores_this_generation[player2] += score_2
         
-        assert isclose(self.progress, 1)
+        assert isclose(self.progress, 1), f"self.progress = {self.progress}"
 
 
     def _adjust_populations(self):
+
+        # TODO! Find out why my experiment seemed to work for the first few generations,
+        # but after that the only thing that kept changing was Majority strat got +1 each
+        # time, no other adjustments at all... weird
         
         total_score = sum(self.scores_this_generation.values())
 
@@ -102,23 +106,23 @@ class MODEL_Simulation:
         # Adjust down
         for species_name, score in species_scores.items():
             species_scores[species_name] = score // self.species_counts[species_name]
-        
+
         # Now adjust the populations
-        for species_name, score in species_scores.items():
+        for species_name, avg_score in species_scores.items():
             # keep total population approx constant
             self.species_counts[species_name] = round(
-                self.species_counts[species_name] * (score / total_score)
+                self.species_counts[species_name] * (self.population_size * avg_score / total_score)
                 + random.gauss(mu=0, sigma=_adjustment_noise)
             )
         
         self.population = self._population_from_counts(self.species_counts)
-        self.population_size = sum(self.populations.values())
-    
+        self.population_size = sum(self.species_counts.values())
+
 
     def _population_from_counts(self, counts: dict[Strategy, int]) -> list[Player]:
         return [
-            Player(Species())
-            for Species, count in counts.items()
+            Player(self.SPECIES[species_name]())
+            for species_name, count in counts.items()
             for _ in range(count)
         ]
 
