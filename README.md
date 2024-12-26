@@ -11,14 +11,14 @@ You can change the `config.ini` file to change the rewards and penalties for eac
 
 - `README.md`: This file.
 - `config.ini`: Configuration file for the simulation.
-- `contest.py`: Contains a simple, one-round, contest to battle different strategies against each other.
+- `contest.py`: Contains a simple, one-generation, contest to battle different strategies against each other.
 - `ecological_simulation.py`: Contains the logic for the ecological simulation, which is the main simulation of multiple generations where strategies that perform well grow in numbers and others go extinct.
 - `catalogue/`: Contains the different species that can be used in the simulation.
 - `utils/`: Contains utility functions and data types for the simulation.
 - `tests/`: Contains functional, unit and integration tests for the simulation.
 - `tmp/`: Contains temporary files generated during the simulation (might be removed later).
 
-Fortunately, unlike most other repositories, in this one you don't need to set up any `credentials.json` or API key environment variables etc. to run the code. You can just clone the repository and run!
+Fortunately you don't need to set up any `credentials.json` or API key environment variables etc. to run the code. You can just clone the repository and run!
 
 ## Running the Simulation
 
