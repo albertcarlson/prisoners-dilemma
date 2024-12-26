@@ -3,7 +3,7 @@
 This repository contains a simulation of the prisoner's dilemma with various strategies, inspired by [this Veritasium video](https://www.youtube.com/watch?v=mScpHTIi-kM&t=995s), which is based on [Robert Axelrod's research](https://en.wikipedia.org/wiki/Robert_Axelrod).
 
 ## The Prisoner's Dilemma
-I've always found the prisoner's dilemma fascinating due to its intricate mathematical dynamics. The nuanced interplay of cooperation, defection, and the resulting rewards and penalties adds a captivating layer of complexity to the decision-making process, where the Nash Equilibrium is not the best outcome, so what is then the "best" thing to do if ever found in this albeit hypothetical situation?
+I've always found the prisoner's dilemma fascinating. Since the Nash Equilibrium is not the best outcome, what is then the "best" thing to do? That, of course, depends on what others are doing (for a given strategy there always exists another strategy that is at least as good, so the "better than"-relation is intransitive). But does there still exist a reasonable definition of a strategy being "oftentimes better" than others? Maybe we can simulate it to get a better intuition for this problem (or at least have fun)? Well... that is the purpose of this repository. To simulate an ecosystem with various strategies ("species") compete and grow or decline in numbers, maybe going extinct. (Although they don't evovle -- I have to scope this project somewhere.)
 
 You can change the `config.ini` file to change the rewards and penalties for each outcome, experimenting with stuff like asymmetric rewards.
 
