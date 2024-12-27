@@ -23,7 +23,7 @@ class Action(Enum):
 
 
 
-def _read_payoff_matrix(filename="config.ini"):
+def _read_payoff_matrix(filename="config.ini") -> dict[tuple[Action, Action], tuple[int, int]]:
     """Reads the payoff matrix from the config file.
     Returns a dictionary of (Action, Action) -> (int, int) mappings."""    
     config = configparser.ConfigParser()
