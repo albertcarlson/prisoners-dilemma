@@ -26,7 +26,7 @@ You need to have `uv` installed in your system. See instructions
 [here](https://docs.astral.sh/uv/getting-started/installation/#installation-methods).
 Thereafter, run 
 ```sh
-uv run streamlit run app.py`
+uv run streamlit run app.py
 ```
 to open the streamlit application with the simulation.
 `uv` will automatically take care of dependencies.
@@ -34,9 +34,7 @@ to open the streamlit application with the simulation.
 ## Running the Tests
 
 To run the tests to make sure everything works correctly, use the following command:
-
 ```sh
 uv run pytest
 ```
-
 Although I have set up a CI/CD pipeline with GitHub Actions, which runs the tests automatically on every push, but if you want you can run them locally to make sure everything works as expected.
