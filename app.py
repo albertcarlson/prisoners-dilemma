@@ -1,49 +1,45 @@
-from utils import PAYOFF_MATRIX, Action
+from utils import PAYOFF_MATRIX, STARTING_POPULATION, Action
 from catalogue import EXAMPLE_SPECIES
 import streamlit as st
-import random
-
+import pandas as pd
 
 
 st.title("Prisoner's Dilemma Simulation")
 
 
 
-small_example_keys = random.sample(sorted(EXAMPLE_SPECIES), 6)
-small_example = {k: EXAMPLE_SPECIES[k] for k in small_example_keys}
-
-
 st.subheader("Species to include")
-species = st.multiselect("Select species", EXAMPLE_SPECIES, default=small_example)
-
-
-
-st.subheader("Initial population counts")
-col1, col2, col3 = st.columns(3)
-counts = {}
-for specie in species[::3]:
-    counts[specie] = col1.number_input(specie, value=10, min_value=0, max_value=100, step=1)
-for specie in species[1::3]:
-    counts[specie] = col2.number_input(specie, value=10, min_value=0, max_value=100, step=1)
-for specie in species[2::3]:
-    counts[specie] = col3.number_input(specie, value=10, min_value=0, max_value=100, step=1)
+st.write("Make your own species in `catalogue/example_species.py` (or make a new file here replicating the current pattern).")
+species = st.multiselect("Select species", EXAMPLE_SPECIES)
 
 
 
 st.subheader("Payoff matrix")
-st.warning("*This interface doesn't work yet. Adjust `config.ini` to change with the payoff matrix.*")
-st.write("A higher score is better for the player.")
-col1, col2 = st.columns(2)
-payoff_CC = col1.number_input("You COOP, Opponent COOPS",     value=PAYOFF_MATRIX[(Action.COOP, Action.COOP)][0], min_value=-10, max_value=10, step=1, disabled=True)
-payoff_CD = col2.number_input("You COOP, Opponent DEFECTS",   value=PAYOFF_MATRIX[(Action.COOP, Action.DEFECT)][0], min_value=-10, max_value=10, step=1, disabled=True)
-payoff_DC = col1.number_input("You DEFECT, Opponent COOPS",   value=PAYOFF_MATRIX[(Action.DEFECT, Action.COOP)][0], min_value=-10, max_value=10, step=1, disabled=True)
-payoff_DD = col2.number_input("You DEFECT, Opponent DEFECTS", value=PAYOFF_MATRIX[(Action.DEFECT, Action.DEFECT)][0], min_value=-10, max_value=10, step=1, disabled=True)
+
+st.write("The payoff matrix below shows your reward for the different outcomes. \
+         The opponent's reward is mirrored (transposed). \
+         A higher score is better for the player.")
+st.write("*At the moment, you need to change `config.ini` to adjust with the payoff matrix.*")
+df = pd.DataFrame({
+    "Your Reward": ["You COOP", "You DEFECT"],
+    "Opponent COOPS": [PAYOFF_MATRIX[(Action.COOP, Action.COOP)][0], PAYOFF_MATRIX[(Action.DEFECT, Action.COOP)][0]],
+    "Opponent DEFECTS": [PAYOFF_MATRIX[(Action.COOP, Action.DEFECT)][0], PAYOFF_MATRIX[(Action.DEFECT, Action.DEFECT)][0]],
+}).set_index("Your Reward")
+st.table(df)
 
 
 
-st.subheader("Rounds per generation")
-rounds = st.number_input("Number of rounds per generation", value=50, min_value=1, max_value=1000, step=5)
-st.write("The scoring is normalized, i.e. is an average for the rounds.")
+st.subheader("Simulation parameters")
+col1, col2, col3 = st.columns(3)
+starting_population = col1.number_input("Starting population per species", value=STARTING_POPULATION, min_value=1, max_value=100, step=1, disabled=True)
+
+rounds = col2.number_input("Number of rounds per generation", value=50, min_value=1, max_value=1000, step=5)
+st.write("The scoring is normalized, i.e. is an average for the rounds. Therefore, 100 and 500 rounds are probably the same.")
+
+overall_food = col3.number_input("Overall food available", value=1_000, min_value=0, max_value=10_000, step=100)
+st.write("Adjust overall food mid-game to introduce famines or periods of plenty.")
+
+st.write("*At the moment, you need to change `config.ini` to adjust the starting population per species.*")
 
 
 st.write("\n")
