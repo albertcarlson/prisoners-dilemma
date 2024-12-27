@@ -60,7 +60,7 @@ class History:
         return History(self.opponent_moves, self.own_moves)
     
     @property
-    def score(self) -> tuple[int, int]:
+    def score(self) -> tuple[float, float]:
         """Returns a tuple of (own_score, opponent_score) from a History object."""
         own_score = 0
         opponent_score = 0
@@ -70,7 +70,7 @@ class History:
             own_score += own_increase
             opponent_score += opponent_increase
 
-        return own_score, opponent_score
+        return own_score / len(self), opponent_score / len(self)  # Normalize score for useful comparison
 
     def __repr__(self) -> str:
         return f"History(own_moves={self.own_moves}, opponent_moves={self.opponent_moves})"

@@ -34,7 +34,7 @@ def test_get_score_2():
 
     score = history.score
 
-    assert score == (5, 5), f"Score should be (5, 5), but was {score}. Did you change the payoff matrix?"
+    assert score == (2.5, 2.5), f"Score should be (2.5, 2.5), but was {score}. Did you change the payoff matrix?"
 
 
 def test_get_score_3():
@@ -52,7 +52,7 @@ def test_get_score_3():
 
     score = history.score
 
-    assert score == (10, 0), f"Score should be (0, 0), but was {score}. Did you change the payoff matrix?"
+    assert score == (5.0, 0.0), f"Score should be (5.0, 0.0), but was {score}. Did you change the payoff matrix?"
 
 
 def test_get_score_4():
@@ -100,7 +100,7 @@ def test_get_score_5():
 
     score = history.score
 
-    assert score == (23, 18), f"Score should be (23, 18), but was {score}. Did you change the payoff matrix?"
+    assert score == (2.5555555555555554, 2.0), f"Score should be (23, 18), but was {score}. Did you change the payoff matrix?"
 
 
 # def test_print_history():

@@ -42,8 +42,8 @@ payoff_DD = col2.number_input("You DEFECT, Opponent DEFECTS", value=PAYOFF_MATRI
 
 
 st.subheader("Rounds per generation")
-rounds = st.number_input("Number of rounds per generation", value=100, min_value=1, max_value=1000, step=5)
-
+rounds = st.number_input("Number of rounds per generation", value=50, min_value=1, max_value=1000, step=5)
+st.write("The scoring is normalized, i.e. is an average for the rounds.")
 
 
 st.write("\n")
