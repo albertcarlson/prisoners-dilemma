@@ -25,17 +25,33 @@ class Action(Enum):
 
 def _read_payoff_matrix(filename="config.ini") -> dict[tuple[Action, Action], tuple[int, int]]:
     """Reads the payoff matrix from the config file.
-    Returns a dictionary of (Action, Action) -> (int, int) mappings."""    
+    Returns a dictionary of (Action, Action) -> (int, int) mappings.
+    The payoff matrix is symmetric, so the only reason there is both
+    an (COOP, DEFECT) and (DEFECT, COOP) is to make it easier to just do
+
+    >>> _read_payoff_matrix()[(some_action, another_action)]
+    
+    for arbitrary some_action, another_action ∈ {COOP, DEFECT}."""    
     config = configparser.ConfigParser()
     config.read(filename)
     return {
-        (Action.COOP, Action.COOP): tuple(map(int, config.get('PayoffMatrix', 'CoopCoop').split(','))),
-        (Action.COOP, Action.DEFECT): tuple(map(int, config.get('PayoffMatrix', 'CoopDefect').split(','))),
-        (Action.DEFECT, Action.COOP): tuple(map(int, config.get('PayoffMatrix', 'DefectCoop').split(','))),
-        (Action.DEFECT, Action.DEFECT): tuple(map(int, config.get('PayoffMatrix', 'DefectDefect').split(','))),
+        (Action.COOP, Action.COOP): (int(config.get('PayoffMatrix', 'CoopCoop')), int(config.get('PayoffMatrix', 'CoopCoop'))),
+        (Action.COOP, Action.DEFECT): (int(config.get('PayoffMatrix', 'CoopDefect')), int(config.get('PayoffMatrix', 'DefectCoop'))),
+        (Action.DEFECT, Action.COOP): (int(config.get('PayoffMatrix', 'DefectCoop')), int(config.get('PayoffMatrix', 'CoopDefect'))),
+        (Action.DEFECT, Action.DEFECT): (int(config.get('PayoffMatrix', 'DefectDefect')), int(config.get('PayoffMatrix', 'DefectDefect'))),
     }
 
 PAYOFF_MATRIX = _read_payoff_matrix()
+
+
+
+def _read_starting_population(filename="config.ini") -> int:
+    """Reads the starting population from the config file."""
+    config = configparser.ConfigParser()
+    config.read(filename)
+    return config.getint("SimulationParameters", "StartingPopulation")
+
+STARTING_POPULATION = _read_starting_population()
 
 
 
@@ -117,3 +133,6 @@ class Player:
         return f"<Player object at {hex(id(self))} using {self.strategy_name}>"
 
 
+@dataclass
+class Population:
+    players: list[Player] = field(default_factory=list)
