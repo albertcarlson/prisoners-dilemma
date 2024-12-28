@@ -161,8 +161,14 @@ class Player:
         If `offspring` is 1, only the player itself is returned, aged by one year,
         as it survived but didn't reproduce.
         """
+        if not isinstance(offspring, int):
+            raise TypeError(f"Expected `offspring` to be an integer, but got {type(offspring)}")
+        if offspring < 0:
+            raise ValueError(f"Expected `offspring` to be a positive integer, but got {offspring}")
+        
         if offspring == 0:
             return []
+        
         players = [Player(self.strategy, age=self.age + 1)]
         players.extend(
             Player(self.strategy, age=0)
@@ -184,7 +190,7 @@ class Player:
         might "mutate back" to its current strategy as well, but
         this shouldn't matter too much.
         """
-        self.change_strategy(random.choice(mutation_strategies)())
+        self.change_strategy(random.choice(mutation_strategies))
 
     def battle(self, opponent: Player, *, rounds: int = 100) -> tuple[int, int]:
         """
@@ -356,4 +362,4 @@ if __name__ == "__main__":
     
     for _ in range(20):
         print(pop.generation, pop.population_counts, pop.population_size, pop.population_average_age)
-        pop.do_generation(overall_food=30, matchup_rate=0.7, mutation_probability=0.1, mutation_strategies=[AlwaysDefect, AlwaysCoop])
+        pop.do_generation(overall_food=30, matchup_rate=0.7, mutation_probability=0.1, mutation_strategies=[AlwaysDefect(), AlwaysCoop()])
