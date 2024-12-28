@@ -1,7 +1,12 @@
 # Import in __init__.py to make it available in the package
-from utils.tools import (
-    random_action, battle
-)
-from utils.dtypes import (
-    Strategy, Action, History, Player, PAYOFF_MATRIX
+from utils.simulation_utils import (
+    Strategy, 
+    Action, 
+    History, 
+    Player,
+    battle, 
+    round_probabilistically, 
+    random_action, 
+    PAYOFF_MATRIX, 
+    STARTING_POPULATION
 )

@@ -3,33 +3,34 @@
 This repository contains a simulation of the prisoner's dilemma with various strategies, inspired by [this Veritasium video](https://www.youtube.com/watch?v=mScpHTIi-kM&t=995s), which is based on [Robert Axelrod's research](https://en.wikipedia.org/wiki/Robert_Axelrod).
 
 ## The Prisoner's Dilemma
-I've always found the prisoner's dilemma fascinating due to its intricate mathematical dynamics. The nuanced interplay of cooperation, defection, and the resulting rewards and penalties adds a captivating layer of complexity to the decision-making process, where the Nash Equilibrium is not the best outcome, so what is then the "best" thing to do if ever found in this albeit hypothetical situation?
+I've always found the prisoner's dilemma fascinating. Since the Nash Equilibrium is not the best outcome, what is then the "best" thing to do? That, of course, depends on what others are doing. But does there still exist a reasonable definition of a strategy being "oftentimes better" than others? Maybe we can simulate it to get a better intuition for this problem (or at least have fun)? Well... that is the purpose of this repository. To simulate an ecosystem with various strategies ("species") compete and grow or decline in numbers, maybe going extinct.
 
-You can change the `config.ini` file to change the rewards and penalties for each outcome, experimenting with stuff like asymmetric rewards.
+You can change the `config.ini` file to change the rewards and penalties for each outcome (payoff matrix).
 
 ## Project Structure
 
 - `README.md`: This file.
 - `config.ini`: Configuration file for the simulation.
-- `contest.py`: Contains a simple, one-round, contest to battle different strategies against each other.
-- `ecological_simulation.py`: Contains the logic for the ecological simulation, which is the main simulation of multiple generations where strategies that perform well grow in numbers and others go extinct.
-- `catalogue/`: Contains the different species that can be used in the simulation.
+- `catalogue/`: Contains the different species (prisoner's dilemma strategies) that can be used in the simulation.
 - `utils/`: Contains utility functions and data types for the simulation.
 - `tests/`: Contains functional, unit and integration tests for the simulation.
-- `tmp/`: Contains temporary files generated during the simulation (might be removed later).
-
-Fortunately, unlike most other repositories, in this one you don't need to set up any `credentials.json` or API key environment variables etc. to run the code. You can just clone the repository and run!
+- `app.py`: The main streamlit application for running the simulation.
 
 ## Running the Simulation
 
-To run the simulations, execute the `contest.py` or `ecological_simulation.py` scripts.
+You need to have `uv` installed in your system. See instructions
+[here](https://docs.astral.sh/uv/getting-started/installation/).
+Thereafter, run 
+```sh
+uv run streamlit run app.py
+```
+to open the streamlit application with the simulation.
+`uv` will automatically take care of dependencies.
 
 ## Running the Tests
 
 To run the tests to make sure everything works correctly, use the following command:
-
 ```sh
-pytest
+uv run pytest
 ```
-
 Although I have set up a CI/CD pipeline with GitHub Actions, which runs the tests automatically on every push, but if you want you can run them locally to make sure everything works as expected.
