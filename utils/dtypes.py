@@ -16,6 +16,17 @@ import random
 
 
 
+def round_probabilistically(x: float, /) -> int:
+    """
+    Rounds a float to an integer probabilistically.
+    For example, 3.75 would be rounded to 4 with 75% probability,
+    and 3 with 25% probability.
+    """
+    q, r = divmod(x, 1)
+    return int(q) + (random.random() < r)
+
+
+
 class Action(Enum):
     COOP: bool = False
     DEFECT: bool = True
@@ -123,24 +134,57 @@ class Strategy(ABC):
 
 
 class Player:
-    def __init__(self, strategy: Strategy):
+    def __init__(self, strategy: Strategy, *, most_recent_score: int = 0, age: int = 0) -> None:
         self.strategy_name = strategy.__class__.__name__
         self.strategy = strategy
-        self.most_recent_score = 0
-        self.age = 0
+        self.most_recent_score = most_recent_score
+        self.age = age
 
-    def make_decision(self, history):
+    def make_decision(self, history) -> Action:
         return self.strategy.decide(history)
     
-    def grow_older(self):
-        self.age += 1
+    def get_offspring(
+            self, 
+            offspring: int, 
+            *, 
+            mutation_strategies: list[Strategy] | None = None, 
+            mutation_probability: float = 0
+    ) -> list[Player]:
+        """
+        Returns a list of `Player`s that are offspring of this player
+        for the new generation. Note that for convenience, this includes
+        the player itself aged by one year, and `offspring-1` new players
+        with age 0, so we can easily get the new generation of players.
 
-    def replicate(self):
-        return Player(self.strategy)
+        If `offspring` is 0, an empty list is returned, since the player
+        didn't survive.
+
+        If `offspring` is 1, only the player itself is returned, aged by one year,
+        as it survived but didn't reproduce.
+        """
+        if offspring == 0:
+            return []
+        players = [Player(self.strategy, age=self.age + 1)]
+        players.extend(
+            Player(self.strategy, age=0).mutate(mutation_strategies, mutation_probability)
+            for _ in range(offspring-1)
+        )
+        return players
     
-    def change_strategy(self, new_strategy: Strategy):
+    def change_strategy(self, new_strategy: Strategy) -> None:
         self.strategy = new_strategy
         self.strategy_name = new_strategy.__class__.__name__
+
+    def mutate(self, mutation_strategies: list[Strategy], probability: float) -> None:
+        """
+        Mutates the player's strategy with a given probability.
+        If the mutation happens, the new strategy is chosen from
+        the `mutation_strategies` list. It might "mutate
+        back" to its current
+        strategy as well, but this doesn't matter too much.
+        """
+        if random.random() < probability:
+            self.change_strategy(random.choice(mutation_strategies))
 
     def battle(self, opponent: Player, *, rounds: int = 100) -> tuple[int, int]:
         """
@@ -166,7 +210,7 @@ class Player:
                 
         return history.score
         
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Player object at {hex(id(self))} using {self.strategy_name}>"
 
 
@@ -207,7 +251,7 @@ class Population:
     
     @property
     def generation(self) -> int:
-        return len(self.__scores[-1])
+        return len(self.players) - 1
     
     @property
     def population_size(self) -> int:
@@ -228,7 +272,7 @@ class Population:
         So if `matchup_rate` is 1.0, all (N choose 2) matchups happen, where
         N is the population size. While if `matchup_rate` is 0.5, around half
         of the matchups occur, and every player is expected to meet (N-1)/2 others.
-        Reduce to speed up a generation.
+        Reduce this variable to speed up a generation.
 
         - The `rounds` are how long a game lasts: For each matchup, the players
         play `rounds` rounds of the prisoner's dilemma game, each remembering the
@@ -245,7 +289,7 @@ class Population:
             if random.random() > matchup_rate:
                 continue
             
-            score1, score2 = battle(player1, player2, rounds=rounds)  # FIXME: Circular import
+            score1, score2 = battle(player1, player2, rounds=rounds)
             
             self.__scores[-1][p1_idx] += score1
             self.__scores[-1][p2_idx] += score2
@@ -270,22 +314,26 @@ class Population:
         """
         if len(self.players) == len(self.__scores):
             raise ValueError("Can't adjust populations before a generation has been run.")
-        assert len(self.players) == len(self.__scores) - 1, "Why is the population size not one more than the same as the number of __scores?"
+        assert len(self.players) == len(self.__scores), "Why is the population size not the same as the number of __scores?"
+        
+        
         pass  # TODO: Adjust populations based on __scores and overall_food
 
 
+
 if __name__ == "__main__":
+    print("THIS IS TEMPORARY TESTING CODE - RUN `uv run streamlit run app.py` INSTEAD TO DO THE SIMULATION")
 
     class AlwaysCoop(Strategy):
         def decide(self, history: History) -> Action:
             return Action.COOP
 
     pop = Population([[Player(AlwaysCoop()), Player(AlwaysCoop()), Player(AlwaysCoop()), Player(AlwaysCoop())]])
-    pop.do_generation()
-    pop.do_generation()
+    pop.do_generation(overall_food=30)
+    pop.do_generation(overall_food=30)
     print(pop.generation)
-    pop.do_generation()
-    pop.do_generation()
+    pop.do_generation(overall_food=30)
+    pop.do_generation(overall_food=30)
     print(pop.generation)
 
 
