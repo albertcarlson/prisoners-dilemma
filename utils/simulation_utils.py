@@ -401,7 +401,11 @@ class Population:
             # so we just need to divide by the expected number of matchups,
             # multiply by the overall food, and divide by the population size.
             # This formula arises from the desired population size convergence.
-            offspring = round_probabilistically(player.most_recent_score * overall_food / self.population_size)
+            offspring = round_probabilistically(player.most_recent_score * overall_food / self.population_size)  # TODO: Fix ZeroDivisionError, probably arises when
+                                                                                                                 #       population size and matchup_rate is too low,
+                                                                                                                 #       so no battles happen => everyone has score 0
+                                                                                                                 #       => offspring is 0 => next generation has 0
+                                                                                                                 #       population => ZeroDivisionError
             new_generation.extend(player.get_offspring(offspring, **kwargs))
 
         self.players.append(new_generation)
@@ -411,7 +415,7 @@ class Population:
 if __name__ == "__main__":
     
     import warnings
-    warnings.warn("This file is not intended to be run as a script. Please import it elsewhere. This is just for testing.")
+    warnings.warn("This file is not intended to be run as a script. This is just for testing.")
     
     class AlwaysCoop(Strategy):
         def decide(self, history: History) -> Action:
