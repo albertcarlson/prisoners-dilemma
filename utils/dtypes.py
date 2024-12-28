@@ -9,7 +9,6 @@ from __future__ import annotations
 from collections.abc import MutableSequence
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
-#from utils.tools import battle
 import itertools as it
 from enum import Enum
 import configparser
@@ -142,9 +141,52 @@ class Player:
     def change_strategy(self, new_strategy: Strategy):
         self.strategy = new_strategy
         self.strategy_name = new_strategy.__class__.__name__
+
+    def battle(self, opponent: Player, *, rounds: int = 100) -> tuple[int, int]:
+        """
+        Battles two `Player`s against each other for `rounds` rounds,
+        returning the scores for each player (normalized by the number of rounds
+        so more rounds doesn't equate to higher scores).
+        """
+        history = History()
+
+        for _ in range(rounds):
+            decision1 = self.make_decision(history)
+            decision2 = opponent.make_decision(~history)  # Inverted history, because for the opponent, our moves are their moves etc.
+
+            assert decision1 in (Action.COOP, Action.DEFECT), f"WHAT, {self} made this move: {decision1} against {opponent}, who made {decision2}.\n{history}"
+            assert decision2 in (Action.COOP, Action.DEFECT), f"WHAT, {opponent} made this move: {decision2} against {self}, who made {decision1}.\n{history}"
+
+            history.append(
+                own_move=decision1,
+                opponent_move=decision2
+            )
+
+        assert len(history) == rounds
+                
+        return history.score
         
     def __repr__(self):
         return f"<Player object at {hex(id(self))} using {self.strategy_name}>"
+
+
+
+def battle(
+        player1: Player,
+        player2: Player,
+        *,
+        rounds: int = 100,
+        debug: bool = False
+    ) -> tuple[int, int]:
+    """
+    Battles two `Player`s against each other for `rounds` rounds,
+    returning the scores for each player (normalized by the number of rounds
+    so more rounds doesn't equate to higher scores).
+    
+    This function is just syntactic sugar for `player1.battle(player2)`,
+    so it appears symmetric, i.e. `battle(player1, player2)`.
+    """
+    return player1.battle(player2, rounds=rounds)
 
 
 
@@ -218,9 +260,9 @@ class Population:
 
         # Step 3. Adjust population sizes
         if adjust_populations:
-            self._adjust_populations(overall_food)
+            self.__adjust_populations(overall_food)
 
-    def _adjust_populations(self, overall_food: int) -> None:
+    def __adjust_populations(self, overall_food: int) -> None:
         """
         Adjusts the population size based on the scores of the players.
         The adjustment is proportional to the score of the player times the

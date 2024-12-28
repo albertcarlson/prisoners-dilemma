@@ -101,34 +101,3 @@ def random_action() -> Action:
     return Action(random.getrandbits(1))
 
 
-def battle(
-    player1: Player,
-    player2: Player,
-    *,
-    rounds: int = 100,
-    debug: bool = False
-) -> tuple[int, int]:
-    
-
-    history = History()
-
-    for _ in range(rounds):
-        decision1 = player1.make_decision(history)
-        decision2 = player2.make_decision(~history)  # Inverted history, because for the opponent, our moves are their moves etc.
-
-        assert decision1 in (Action.COOP, Action.DEFECT), f"WHAT, {player1} made this move: {decision1} against {player2}, who made {decision2}.\n{history}"
-        assert decision2 in (Action.COOP, Action.DEFECT), f"WHAT, {player2} made this move: {decision2} against {player1}, who made {decision1}.\n{history}"
-
-        history.append(
-            own_move=decision1,
-            opponent_move=decision2
-        )
-
-    assert len(history) == rounds
-    
-    if debug:
-        print(history, file=open("tmp/debug.txt", "a"))
-    
-    return history.score
-
-
