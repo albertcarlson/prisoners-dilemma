@@ -54,7 +54,7 @@ col1, col2 = st.columns(2)
 generation = st.session_state.get("generation", 0)
 col1.button("Run 1 generation")
 col2.button("Run 5 generations")
-
+st.warning("The simulation is not implemented yet.")
 st.write(f"Generation: {generation}")
 # st.write(f"Total population: {sum(counts.values())}")
 
