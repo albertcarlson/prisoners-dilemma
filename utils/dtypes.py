@@ -5,12 +5,15 @@ the project. It is intended to only be imported
 by other files in the project to ensure a clean
 API.
 """
-
+from __future__ import annotations
 from collections.abc import MutableSequence
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
+#from utils.tools import battle
+import itertools as it
 from enum import Enum
 import configparser
+import random
 
 
 
@@ -124,15 +127,124 @@ class Player:
     def __init__(self, strategy: Strategy):
         self.strategy_name = strategy.__class__.__name__
         self.strategy = strategy
-        # self.score = 0  #NotImplemented
+        self.most_recent_score = 0
+        self.age = 0
 
     def make_decision(self, history):
         return self.strategy.decide(history)
+    
+    def grow_older(self):
+        self.age += 1
+
+    def replicate(self):
+        return Player(self.strategy)
+    
+    def change_strategy(self, new_strategy: Strategy):
+        self.strategy = new_strategy
+        self.strategy_name = new_strategy.__class__.__name__
         
     def __repr__(self):
         return f"<Player object at {hex(id(self))} using {self.strategy_name}>"
 
 
+
 @dataclass
 class Population:
-    players: list[Player] = field(default_factory=list)
+    # Double list due to time series data
+    players: list[list[Player]] = field(default_factory=list)
+    __scores: list[list[float]] = field(default_factory=list)
+
+    @property
+    def population_counts(self) -> dict[str, int]:
+        return {
+            player.strategy_name: [
+                strat.strategy_name for strat in self.players[-1]
+            ].count(player.strategy_name)
+            for player in self.players[-1]
+        }
+    
+    @property
+    def generation(self) -> int:
+        return len(self.__scores[-1])
+    
+    @property
+    def population_size(self) -> int:
+        return len(self.players[-1])
+
+    def do_generation(
+        self,
+        matchup_rate: float = 1.0,
+        # payoff_matrix,  # TODO: Support payoff matrix that isn't just the global constant loaded from config.ini
+        rounds: int = 50,
+        overall_food: int = 1_000,
+        adjust_populations: bool = True
+    ) -> None:
+        """
+        Does one generation in a round-robin tournament style.
+        
+        - However, a given matchup only happens with `matchup_rate` probability.
+        So if `matchup_rate` is 1.0, all (N choose 2) matchups happen, where
+        N is the population size. While if `matchup_rate` is 0.5, around half
+        of the matchups occur, and every player is expected to meet (N-1)/2 others.
+        Reduce to speed up a generation.
+
+        - The `rounds` are how long a game lasts: For each matchup, the players
+        play `rounds` rounds of the prisoner's dilemma game, each remembering the
+        history of the other and play accordingly (in accordance with their `Strategy`).
+
+        - `overall_food` is the desired convergence of the population size. (NOT QUITE: FIX THIS EXPLANATION) This is used
+        to adjust the population size after each generation proportional to their score
+        times the `overall_food` divided by the current population size.
+        """
+        # Step 1. Battle everyone against everyone (each matchup with probability `matchup_rate`)
+        self.__scores.append([0 for _ in self.players[-1]])
+
+        for matchup, ((p1_idx, player1), (p2_idx, player2)) in enumerate(it.combinations(enumerate(self.players), 2), start=1):
+            if random.random() > matchup_rate:
+                continue
+            
+            score1, score2 = battle(player1, player2, rounds=rounds)  # FIXME: Circular import
+            
+            self.__scores[-1][p1_idx] += score1
+            self.__scores[-1][p2_idx] += score2
+
+        assert matchup == self.population_size * (self.population_size - 1) // 2, "Why wasn't there (N choose 2) battles?"
+
+        # Step 2. Normalize scores
+        # TODO: here we should normalize by matchup rate and population size
+        # The History object already normalized by rounds
+        expected_matchups = (self.population_siz - 1) * matchup_rate
+        self.__scores[-1] = [score / expected_matchups for score in self.__scores[-1]]
+
+        # Step 3. Adjust population sizes
+        if adjust_populations:
+            self._adjust_populations(overall_food)
+
+    def _adjust_populations(self, overall_food: int) -> None:
+        """
+        Adjusts the population size based on the scores of the players.
+        The adjustment is proportional to the score of the player times the
+        `overall_food` parameter, divided by the current population size.
+        """
+        if len(self.players) == len(self.__scores):
+            raise ValueError("Can't adjust populations before a generation has been run.")
+        assert len(self.players) == len(self.__scores) - 1, "Why is the population size not one more than the same as the number of __scores?"
+        pass  # TODO: Adjust populations based on __scores and overall_food
+
+
+if __name__ == "__main__":
+
+    class AlwaysCoop(Strategy):
+        def decide(self, history: History) -> Action:
+            return Action.COOP
+
+    pop = Population([[Player(AlwaysCoop()), Player(AlwaysCoop()), Player(AlwaysCoop()), Player(AlwaysCoop())]])
+    pop.do_generation()
+    pop.do_generation()
+    print(pop.generation)
+    pop.do_generation()
+    pop.do_generation()
+    print(pop.generation)
+
+
+    print(pop.population_counts)
