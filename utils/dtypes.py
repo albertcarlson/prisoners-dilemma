@@ -335,6 +335,8 @@ class Population:
           but keep in touch with the documentation of the `Player.get_offspring` method.
         """
         # Step 1. Battle everyone against everyone (each matchup with probability `matchup_rate`)
+        expected_matchups = (self.population_size - 1) * matchup_rate
+
         for match_num, (player1, player2) in enumerate(it.combinations(self.players[-1], 2), start=1):
             
             if random.random() > matchup_rate:
@@ -342,16 +344,16 @@ class Population:
             
             score1, score2 = battle(player1, player2, rounds=rounds)
             
-            player1.most_recent_score += score1
-            player2.most_recent_score += score2
+            player1.most_recent_score += score1 / expected_matchups
+            player2.most_recent_score += score2 / expected_matchups
 
         assert match_num == self.population_size * (self.population_size - 1) // 2, "Why wasn't there (N choose 2) battles?"
         
         # Step 2. Adjust population sizes
         if adjust_populations:
-            self.__adjust_populations(matchup_rate, overall_food, **kwargs)
+            self.__adjust_populations(overall_food, **kwargs)
 
-    def __adjust_populations(self, matchup_rate: float, overall_food: int, **kwargs) -> None:
+    def __adjust_populations(self, overall_food: int, **kwargs) -> None:
         """
         Adjusts the population size based on the scores of the players.
 
@@ -365,14 +367,14 @@ class Population:
         but keep in touch with the documentation of the `Player.get_offspring` method.
         """
         new_generation = []
-        expected_matchups = (self.population_size - 1) * matchup_rate
+        
         for player in self.players[-1]:
             # Normalize scores and use them to calculate offspring.
             # History object already normalizes by number of rounds,
             # so we just need to divide by the expected number of matchups,
             # multiply by the overall food, and divide by the population size.
             # This formula arises from the desired population size convergence.
-            offspring = round_probabilistically(player.most_recent_score / expected_matchups * overall_food / self.population_size)
+            offspring = round_probabilistically(player.most_recent_score * overall_food / self.population_size)
             new_generation.extend(player.get_offspring(offspring, **kwargs))
 
         self.players.append(new_generation)
