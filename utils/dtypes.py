@@ -241,6 +241,40 @@ def battle(
 
 @dataclass
 class Population:
+    """
+    Simulates an entire population/society of `Player`s each with their
+    own `Strategy` that interact and get offspring. This `Population` class
+    comes with a `do_generation` method that simulates one generation of
+    the population battling and reproducing. You can specify mutation
+    probabilities and more to play with the simulation.
+
+    In that way, you can say that this class is the core of the ecological
+    simulation.
+
+    ## Example
+    >>> class AlwaysCoop(Strategy):
+    >>>     def decide(self, history: History) -> Action:
+    >>>         return Action.COOP
+    >>> class AlwaysDefect(Strategy):
+    >>>     def decide(self, history: History) -> Action:
+    >>>         return Action.DEFECT
+    >>> pop = Population([[Player(AlwaysCoop()), Player(AlwaysCoop()), Player(AlwaysCoop())]])
+    >>> for gen in range(20):
+    >>>     print(pop.generation, pop.population_counts, pop.population_size, pop.population_average_age)
+    >>>     pop.do_generation(overall_food=20, mutation_probability=0.1, mutation_strategies=[AlwaysDefect(), AlwaysCoop()])
+
+    The example above starts with 3 cooperaters that should grow in numbers within a few
+    generations. However, sooner or later, since mutation_probability is 0.1, a defector
+    will appear and the population will be taken over by defectors, and also shrink since
+    they're "less efficient overall" (as long as you specify the DEFECT-DEFECT reward in
+    the payoff matrix to be  less than the COOP-COOP reward). Occasionally, a coop will
+    re-appear due to mutation, but it will be outcompeted by the defectors. You might also
+    see the average age decline briefly as the defectors take over because all the old coops
+    die out and the new defectors are young.
+
+    This is a simple example that demonstrates the prisoner's dilemma and the tragedy of
+    the commons.
+    """
     # Double list due to time series data (we want to keep all generations)
     players: list[list[Player]] = field(default_factory=list)
 
@@ -362,4 +396,4 @@ if __name__ == "__main__":
     
     for _ in range(20):
         print(pop.generation, pop.population_counts, pop.population_size, pop.population_average_age)
-        pop.do_generation(overall_food=30, matchup_rate=0.7, mutation_probability=0.1, mutation_strategies=[AlwaysDefect(), AlwaysCoop()])
+        pop.do_generation(overall_food=20, mutation_probability=0.1, mutation_strategies=[AlwaysDefect(), AlwaysCoop()])
