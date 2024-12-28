@@ -1,9 +1,8 @@
 """
-This file contains important, yet semi-ugly
-/ abstract datatypes that are used throughout
-the project. It is intended to only be imported
-by other files in the project to ensure a clean
-API.
+This file contains important, yet semi-ugly / abstract datatypes that
+are used throughout the project, such as Strategy, Player, Population,
+Action and History. It is intended to only be imported by other files
+in the project to ensure a clean API.
 """
 from __future__ import annotations
 from collections.abc import MutableSequence
@@ -236,7 +235,7 @@ def battle(
 
 @dataclass
 class Population:
-    # Double list due to time series data
+    # Double list due to time series data (we want to keep all generations)
     players: list[list[Player]] = field(default_factory=list)
 
     @property
@@ -307,20 +306,12 @@ class Population:
             player2.most_recent_score += score2
 
         assert match_num == self.population_size * (self.population_size - 1) // 2, "Why wasn't there (N choose 2) battles?"
-
-        # Step 2. Normalize scores
-        # The History object already normalized by rounds
-        expected_matchups = (self.population_size - 1) * matchup_rate
-        for player in self.players[-1]:
-            player.most_recent_score /= expected_matchups  # Lower matchup rate shouldn't give lower scores on average
-            player.most_recent_score *= overall_food
-            player.most_recent_score /= self.population_size
-
-        # Step 3. Adjust population sizes
+        
+        # Step 2. Adjust population sizes
         if adjust_populations:
-            self.__adjust_populations(**kwargs)
+            self.__adjust_populations(matchup_rate, overall_food, **kwargs)
 
-    def __adjust_populations(self, **kwargs) -> None:
+    def __adjust_populations(self, matchup_rate: float, overall_food: int, **kwargs) -> None:
         """
         Adjusts the population size based on the scores of the players.
 
@@ -334,8 +325,14 @@ class Population:
         but keep in touch with the documentation of the `Player.get_offspring` method.
         """
         new_generation = []
+        expected_matchups = (self.population_size - 1) * matchup_rate
         for player in self.players[-1]:
-            offspring = round_probabilistically(player.most_recent_score)
+            # Normalize scores and use them to calculate offspring.
+            # History object already normalizes by number of rounds,
+            # so we just need to divide by the expected number of matchups,
+            # multiply by the overall food, and divide by the population size.
+            # This formula arises from the desired population size convergence.
+            offspring = round_probabilistically(player.most_recent_score / expected_matchups * overall_food / self.population_size)
             new_generation.extend(player.get_offspring(offspring, **kwargs))
 
         self.players.append(new_generation)
@@ -343,7 +340,10 @@ class Population:
 
 
 if __name__ == "__main__":
-
+    
+    import warnings
+    warnings.warn("This file is not intended to be run as a script. Please import it elsewhere. This is just for testing.")
+    
     class AlwaysCoop(Strategy):
         def decide(self, history: History) -> Action:
             return Action.COOP
@@ -354,6 +354,6 @@ if __name__ == "__main__":
 
     pop = Population([[Player(AlwaysCoop()), Player(AlwaysCoop()), Player(AlwaysCoop()), Player(AlwaysCoop())]])
     
-    for _ in range(30):
+    for _ in range(20):
         print(pop.generation, pop.population_counts, pop.population_size, pop.population_average_age)
         pop.do_generation(overall_food=30, matchup_rate=0.7, mutation_probability=0.1, mutation_strategies=[AlwaysDefect, AlwaysCoop])
