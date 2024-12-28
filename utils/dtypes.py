@@ -166,25 +166,26 @@ class Player:
             return []
         players = [Player(self.strategy, age=self.age + 1)]
         players.extend(
-            Player(self.strategy, age=0).mutate(mutation_strategies, mutation_probability)
+            Player(self.strategy, age=0)
             for _ in range(offspring-1)
         )
+        for player in players[1:]:
+            if random.random() < mutation_probability:
+                player.mutate(mutation_strategies)
         return players
     
     def change_strategy(self, new_strategy: Strategy) -> None:
         self.strategy = new_strategy
         self.strategy_name = new_strategy.__class__.__name__
 
-    def mutate(self, mutation_strategies: list[Strategy], probability: float) -> None:
+    def mutate(self, mutation_strategies: list[Strategy]) -> None:
         """
-        Mutates the player's strategy with a given probability.
-        If the mutation happens, the new strategy is chosen from
-        the `mutation_strategies` list. It might "mutate
-        back" to its current
-        strategy as well, but this doesn't matter too much.
+        Mutates the player's strategy in-place to a random, new
+        strategy chosen from the `mutation_strategies` list. It
+        might "mutate back" to its current strategy as well, but
+        this shouldn't matter too much.
         """
-        if random.random() < probability:
-            self.change_strategy(random.choice(mutation_strategies))
+        self.change_strategy(random.choice(mutation_strategies)())
 
     def battle(self, opponent: Player, *, rounds: int = 100) -> tuple[int, int]:
         """
@@ -220,7 +221,6 @@ def battle(
         player2: Player,
         *,
         rounds: int = 100,
-        debug: bool = False
     ) -> tuple[int, int]:
     """
     Battles two `Player`s against each other for `rounds` rounds,
@@ -238,7 +238,6 @@ def battle(
 class Population:
     # Double list due to time series data
     players: list[list[Player]] = field(default_factory=list)
-    __scores: list[list[float]] = field(default_factory=list)
 
     @property
     def population_counts(self) -> dict[str, int]:
@@ -256,6 +255,10 @@ class Population:
     @property
     def population_size(self) -> int:
         return len(self.players[-1])
+    
+    @property
+    def population_average_age(self) -> float:
+        return sum(player.age for player in self.players[-1]) / self.population_size
 
     def do_generation(
         self,
@@ -263,78 +266,94 @@ class Population:
         # payoff_matrix,  # TODO: Support payoff matrix that isn't just the global constant loaded from config.ini
         rounds: int = 50,
         overall_food: int = 1_000,
-        adjust_populations: bool = True
+        adjust_populations: bool = True,
+        **kwargs
     ) -> None:
         """
         Does one generation in a round-robin tournament style.
         
         - However, a given matchup only happens with `matchup_rate` probability.
-        So if `matchup_rate` is 1.0, all (N choose 2) matchups happen, where
-        N is the population size. While if `matchup_rate` is 0.5, around half
-        of the matchups occur, and every player is expected to meet (N-1)/2 others.
-        Reduce this variable to speed up a generation.
+          So if `matchup_rate` is 1.0, all (N choose 2) matchups happen, where
+          N is the population size. While if `matchup_rate` is 0.5, around half
+          of the matchups occur, and every player is expected to meet (N-1)/2 others.
+          Reduce this variable to speed up a generation.
 
         - The `rounds` are how long a game lasts: For each matchup, the players
-        play `rounds` rounds of the prisoner's dilemma game, each remembering the
-        history of the other and play accordingly (in accordance with their `Strategy`).
+          play `rounds` rounds of the prisoner's dilemma game, each remembering the
+          history of the other and play accordingly (in accordance with their `Strategy`).
 
-        - `overall_food` is the desired convergence of the population size. (NOT QUITE: FIX THIS EXPLANATION) This is used
-        to adjust the population size after each generation proportional to their score
-        times the `overall_food` divided by the current population size.
+        - `overall_food` is used to adjust the population size after each generation
+          based on each player's score. This parameter is correlated with the desired
+          convergence of the population size. More precisely, the population size
+          approximately converges to the average score of the players times the overall food.
+          I.e. a whole population of altruistic players that always cooperate (and who might
+          get an average score each of 3 each) will converge to 3 times the food since they
+          "get more out of it" than a whole population of defectors (that might only get 1
+          on average) and thus only a population size of 1 times the food.
+
+        - `**kwargs` are passed to the `Player.get_offspring` method. As of
+          writing, you can therefore supply `mutation_strategies` and `mutation_probability`,
+          but keep in touch with the documentation of the `Player.get_offspring` method.
         """
         # Step 1. Battle everyone against everyone (each matchup with probability `matchup_rate`)
-        self.__scores.append([0 for _ in self.players[-1]])
-
-        for matchup, ((p1_idx, player1), (p2_idx, player2)) in enumerate(it.combinations(enumerate(self.players), 2), start=1):
+        for match_num, (player1, player2) in enumerate(it.combinations(self.players[-1], 2), start=1):
+            
             if random.random() > matchup_rate:
                 continue
             
             score1, score2 = battle(player1, player2, rounds=rounds)
             
-            self.__scores[-1][p1_idx] += score1
-            self.__scores[-1][p2_idx] += score2
+            player1.most_recent_score += score1
+            player2.most_recent_score += score2
 
-        assert matchup == self.population_size * (self.population_size - 1) // 2, "Why wasn't there (N choose 2) battles?"
+        assert match_num == self.population_size * (self.population_size - 1) // 2, "Why wasn't there (N choose 2) battles?"
 
         # Step 2. Normalize scores
-        # TODO: here we should normalize by matchup rate and population size
         # The History object already normalized by rounds
-        expected_matchups = (self.population_siz - 1) * matchup_rate
-        self.__scores[-1] = [score / expected_matchups for score in self.__scores[-1]]
+        expected_matchups = (self.population_size - 1) * matchup_rate
+        for player in self.players[-1]:
+            player.most_recent_score /= expected_matchups  # Lower matchup rate shouldn't give lower scores on average
+            player.most_recent_score *= overall_food
+            player.most_recent_score /= self.population_size
 
         # Step 3. Adjust population sizes
         if adjust_populations:
-            self.__adjust_populations(overall_food)
+            self.__adjust_populations(**kwargs)
 
-    def __adjust_populations(self, overall_food: int) -> None:
+    def __adjust_populations(self, **kwargs) -> None:
         """
         Adjusts the population size based on the scores of the players.
+
         The adjustment is proportional to the score of the player times the
         `overall_food` parameter, divided by the current population size.
+
+        Appends the new generation of players to the `players` list.
+
+        **kwargs are passed to the `Player.get_offspring` method. As of
+        writing, you can therefore supply `mutation_strategies` and `mutation_probability`,
+        but keep in touch with the documentation of the `Player.get_offspring` method.
         """
-        if len(self.players) == len(self.__scores):
-            raise ValueError("Can't adjust populations before a generation has been run.")
-        assert len(self.players) == len(self.__scores), "Why is the population size not the same as the number of __scores?"
-        
-        
-        pass  # TODO: Adjust populations based on __scores and overall_food
+        new_generation = []
+        for player in self.players[-1]:
+            offspring = round_probabilistically(player.most_recent_score)
+            new_generation.extend(player.get_offspring(offspring, **kwargs))
+
+        self.players.append(new_generation)
 
 
 
 if __name__ == "__main__":
-    print("THIS IS TEMPORARY TESTING CODE - RUN `uv run streamlit run app.py` INSTEAD TO DO THE SIMULATION")
 
     class AlwaysCoop(Strategy):
         def decide(self, history: History) -> Action:
             return Action.COOP
+        
+    class AlwaysDefect(Strategy):
+        def decide(self, history: History) -> Action:
+            return Action.DEFECT
 
     pop = Population([[Player(AlwaysCoop()), Player(AlwaysCoop()), Player(AlwaysCoop()), Player(AlwaysCoop())]])
-    pop.do_generation(overall_food=30)
-    pop.do_generation(overall_food=30)
-    print(pop.generation)
-    pop.do_generation(overall_food=30)
-    pop.do_generation(overall_food=30)
-    print(pop.generation)
-
-
-    print(pop.population_counts)
+    
+    for _ in range(30):
+        print(pop.generation, pop.population_counts, pop.population_size, pop.population_average_age)
+        pop.do_generation(overall_food=30, matchup_rate=0.7, mutation_probability=0.1, mutation_strategies=[AlwaysDefect, AlwaysCoop])
