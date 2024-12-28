@@ -27,7 +27,7 @@ def test_tit_for_tat_vs_tester(payoff_matrix):
     tit4tat = Player(EXAMPLE_SPECIES["TitForTat"]())
     tester  = Player(EXAMPLE_SPECIES["Tester"]())
 
-    score = battle(tit4tat, tester, rounds=100, debug=True)
+    score = battle(tit4tat, tester, rounds=100)
 
     coop_coop_1, coop_coop_2     = payoff_matrix[Action.COOP, Action.COOP]
     coop_defect_1, coop_defect_2 = payoff_matrix[Action.COOP, Action.DEFECT]

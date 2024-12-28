@@ -3,5 +3,5 @@ from utils.tools import (
     random_action#, do_generation
 )
 from utils.dtypes import (
-    Strategy, Action, History, Player, battle, PAYOFF_MATRIX, STARTING_POPULATION
+    Strategy, Action, History, Player, battle, round_probabilistically, PAYOFF_MATRIX, STARTING_POPULATION
 )
