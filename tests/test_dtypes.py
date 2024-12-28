@@ -1,4 +1,4 @@
-from utils import Strategy, Action, History, round_probabilistically, PAYOFF_MATRIX#, Player, <--- TODO! test Player class
+from utils import Strategy, Action, History, round_probabilistically, PAYOFF_MATRIX, Player
 from collections.abc import MutableSequence
 import pytest
 
@@ -75,6 +75,108 @@ def test_round_probabilistically():
         assert round_probabilistically(i) == i
         assert round_probabilistically(i + 0.5) in [i, i+1]
 
+
+@pytest.fixture
+def player_coop():
+    class AlwaysCoop(Strategy):
+        def decide(self, history: History) -> Action:
+            return Action.COOP
+    
+    return Player(AlwaysCoop())
+
+
+@pytest.fixture
+def player_defect():
+    class AlwaysDefect(Strategy):
+        def decide(self, history: History) -> Action:
+            return Action.DEFECT
+    
+    return Player(AlwaysDefect())
+
+
+@pytest.fixture
+def coop_class():
+    class AlwaysCoop(Strategy):
+        def decide(self, history: History) -> Action:
+            return Action.COOP
+    
+    return AlwaysCoop
+
+
+@pytest.fixture
+def defect_class():
+    class AlwaysDefect(Strategy):
+        def decide(self, history: History) -> Action:
+            return Action.DEFECT
+    
+    return AlwaysDefect
+
+
+def test_player_basic_properties(player_coop, player_defect):
+    assert player_coop.strategy.decide(None) == Action.COOP
+    assert player_defect.strategy.decide(None) == Action.DEFECT
+
+    assert player_coop.strategy_name == "AlwaysCoop"
+    assert player_defect.strategy_name == "AlwaysDefect"
+
+    assert player_coop.age == 0
+    assert player_defect.age == 0
+
+    assert player_coop.most_recent_score == 0
+    assert player_defect.most_recent_score == 0
+
+    score1, score2 = player_coop.battle(player_defect, rounds=17)
+    assert score1 == PAYOFF_MATRIX[(Action.COOP, Action.DEFECT)][0]
+    assert score2 == PAYOFF_MATRIX[(Action.COOP, Action.DEFECT)][1]
+
+def test_player_offspring(player_coop, player_defect, coop_class, defect_class):
+    offspring = player_coop.get_offspring(2)
+    assert len(offspring) == 2
+    assert offspring[0].strategy.decide(None) == Action.COOP
+    assert offspring[1].strategy.decide(None) == Action.COOP
+    assert offspring[0].strategy_name == "AlwaysCoop"
+    assert offspring[1].strategy_name == "AlwaysCoop"
+    assert offspring[0].age == 1  # Ensure it has aged
+    assert offspring[1].age == 0
+    assert offspring[0].most_recent_score == 0
+    assert offspring[1].most_recent_score == 0
+
+    offspring = player_defect.get_offspring(0)
+    assert len(offspring) == 0
+    
+    with pytest.raises(ValueError):
+        player_coop.get_offspring(-1)
+    
+    with pytest.raises(TypeError):
+        player_coop.get_offspring(0.5)
+
+    # Test offspring with mutation (equal to 1)
+    offspring = player_coop.get_offspring(1, mutation_strategies=[coop_class(), defect_class()], mutation_probability=1)
+    assert len(offspring) == 1
+    assert offspring[0].strategy.decide(None) == Action.COOP
+    assert offspring[0].strategy_name == "AlwaysCoop"
+    assert offspring[0].age == 1  # Ensure it has aged
+
+    offspring = player_defect.get_offspring(3, mutation_strategies=[coop_class()], mutation_probability=1)
+    assert len(offspring) == 3
+    assert offspring[0].strategy.decide(None) == Action.DEFECT  # Parent is still the same
+    assert offspring[1].strategy.decide(None) == Action.COOP    # Child 1 has mutated
+    assert offspring[2].strategy.decide(None) == Action.COOP    # Child 2 has mutated
+    assert offspring[0].strategy_name == "AlwaysDefect"
+    assert offspring[1].strategy_name == "AlwaysCoop"
+    assert offspring[2].strategy_name == "AlwaysCoop"
+    assert offspring[0].age == 1  # Ensure it has aged
+    assert offspring[1].age == 0
+    assert offspring[2].age == 0
+
+
+def test_player_change_strategy(player_coop, player_defect, defect_class):
+    player_coop.change_strategy(defect_class())
+    assert player_coop.strategy.decide(None) == Action.DEFECT
+    assert player_coop.strategy_name == "AlwaysDefect"
+    assert player_coop.age == 0
+    assert player_coop.most_recent_score == 0
+    assert player_coop.battle(player_defect, rounds=17) == PAYOFF_MATRIX[(Action.DEFECT, Action.DEFECT)]
 
 
 def test_strategy():
