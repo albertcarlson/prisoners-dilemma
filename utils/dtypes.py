@@ -35,6 +35,12 @@ class Action(Enum):
 
 
 
+def random_action() -> Action:
+    """Returns a random action (either COOP or DEFECT) with equal probability."""
+    return Action(random.getrandbits(1))
+
+
+
 def _read_payoff_matrix(filename="config.ini") -> dict[tuple[Action, Action], tuple[int, int]]:
     """Reads the payoff matrix from the config file.
     Returns a dictionary of (Action, Action) -> (int, int) mappings.
@@ -352,6 +358,27 @@ class Population:
         # Step 2. Adjust population sizes
         if adjust_populations:
             self.__adjust_populations(overall_food, **kwargs)
+
+
+    def summary() -> str:
+        """
+        After the round is run, this method can be called to get a summary.
+        """
+        # OLD CODE BELOW. TODO: Update this to work with the new data structure.
+        # sorted_scores = sorted(avg_scores_per_round.items(), key=lambda x: x[1], reverse=True)
+        # best = sorted_scores[0]
+        # worst = sorted_scores[-1]
+        # avg_score = sum(avg_scores_per_round.values()) / len(avg_scores_per_round)
+        # total_participants = len(avg_scores_per_round)
+
+        # # if the keys are function objects
+        # if callable(best[0]):
+        #     best  = (best[0].__name__,  best[1])
+        #     worst = (worst[0].__name__, worst[1])
+            
+
+        # return f"The  place is {best[0]} with avg. score of {best[1]}, while the worst is {worst[0]}, who only got {worst[1]}. The average score was {avg_score:.1f} among {total_participants} participants."
+
 
     def __adjust_populations(self, overall_food: int, **kwargs) -> None:
         """
