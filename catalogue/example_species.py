@@ -173,22 +173,22 @@ class AngryRevenge(Strategy):
 
 
 EXAMPLE_SPECIES: dict[str, Strategy] = {
-    strat().__class__.__name__: strat
+    strat.__class__.__name__: strat
     for strat in [
-        TitForTat,
-        ThreeChances,
-        Random,
-        Random2,
-        TitForTwoTats,
-        AlwaysDefect,
-        AlwaysCoop,
-        Tester,
-        RepeatWhatWorks,
-        Joss,
-        Selps,
-        Pavlov,
-        Majority,
-        GenerousTitForTat,
-        AngryRevenge,
+        TitForTat(),
+        ThreeChances(),
+        Random(),
+        Random2(),
+        TitForTwoTats(),
+        AlwaysDefect(),
+        AlwaysCoop(),
+        Tester(),
+        RepeatWhatWorks(),
+        Joss(),
+        Selps(),
+        Pavlov(),
+        Majority(),
+        GenerousTitForTat(),
+        AngryRevenge(),
     ]
 }

@@ -10,8 +10,8 @@ def payoff_matrix():
 
 def test_tit_for_tat_battle(payoff_matrix):
 
-    tit4tat1 = Player(EXAMPLE_SPECIES["TitForTat"]())
-    tit4tat2 = Player(EXAMPLE_SPECIES["TitForTat"]())
+    tit4tat1 = Player(EXAMPLE_SPECIES["TitForTat"])
+    tit4tat2 = Player(EXAMPLE_SPECIES["TitForTat"])
 
     score = battle(tit4tat1, tit4tat2, rounds=100)
 
@@ -24,8 +24,8 @@ def test_tit_for_tat_battle(payoff_matrix):
 
 def test_tit_for_tat_vs_tester(payoff_matrix):
 
-    tit4tat = Player(EXAMPLE_SPECIES["TitForTat"]())
-    tester  = Player(EXAMPLE_SPECIES["Tester"]())
+    tit4tat = Player(EXAMPLE_SPECIES["TitForTat"])
+    tester  = Player(EXAMPLE_SPECIES["Tester"])
 
     score = battle(tit4tat, tester, rounds=100)
 
