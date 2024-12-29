@@ -34,8 +34,8 @@ Below, I ran the simulation with only two possible strategies ("species“):
 - Defectors, who always defect no matter what.
 
 I started with a population of just 300 cooperators, with a mutation rate of 0.01.
-As is evident in the screenshot (from the streamlit application), eventually a
-defector appeared from mutation and begins to exploit the cooperators (due to how
+As is evident in the screenshot (taken from the streamlit application), eventually
+a defector appeared from mutation and begins to exploit the cooperators (due to how
 the payoff matrix is structured), so it reproduces and grows in numbers. Eventually
 the cooperators go extinct.
 
@@ -46,7 +46,20 @@ tragedy of the commons.
 
 ![Example of Cooperation vs Defection](images/example_coop_defect.png)
 
-## Running the Tests
+However, when we introduce a new species to the mix:
+
+- Tit for Tat, who simply repeat the opponent's last move,
+
+the defectors are suddenly challenged and end up going extinct, since they cannot
+exploit these in the same way: When two Tit-for-Tats meet each other, they are so
+productive cooperating with each other that they are able to get a high enough
+score to outweigh the constant low scores against defectors. Interestingly, as
+shown in the screenshot, it took quite a few generations for there to be enough
+Tit-for-Tats for them to have enough others they could be productive with.
+
+![Example of Cooperation vs Defection](images/example_coop_defect_titfortat.png)
+
+## Testing
 
 To run the tests to make sure everything works correctly, use the following command:
 ```sh
