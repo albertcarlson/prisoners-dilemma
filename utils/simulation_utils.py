@@ -26,6 +26,14 @@ def round_probabilistically(x: float, /) -> int:
 
 
 
+def flatten(list_of_lists: list[list]) -> list:
+    """
+    Flattens a list of lists into a single list.
+    """
+    return [elem for sublist in list_of_lists for elem in sublist]
+
+
+
 class Action(Enum):
     COOP: bool = False
     DEFECT: bool = True
@@ -182,21 +190,15 @@ class Player:
         )
         for player in players[1:]:
             if random.random() < mutation_probability:
-                player.mutate(mutation_strategies)
+                player.change_strategy(random.choice(mutation_strategies))
         return players
     
     def change_strategy(self, new_strategy: Strategy) -> None:
+        """
+        Changes the player's strategy in-place to the new strategy.
+        """
         self.strategy = new_strategy
         self.strategy_name = new_strategy.__class__.__name__
-
-    def mutate(self, mutation_strategies: list[Strategy]) -> None:
-        """
-        Mutates the player's strategy in-place to a random, new
-        strategy chosen from the `mutation_strategies` list. It
-        might "mutate back" to its current strategy as well, but
-        this shouldn't matter too much.
-        """
-        self.change_strategy(random.choice(mutation_strategies))
 
     def battle(self, opponent: Player, *, rounds: int = 100) -> tuple[int, int]:
         """
@@ -273,7 +275,7 @@ class Population:
     generations. However, sooner or later, since mutation_probability is 0.1, a defector
     will appear and the population will be taken over by defectors, and also shrink since
     they're "less efficient overall" (as long as you specify the DEFECT-DEFECT reward in
-    the payoff matrix to be  less than the COOP-COOP reward). Occasionally, a coop will
+    the payoff matrix to be less than the COOP-COOP reward). Occasionally, a coop will
     re-appear due to mutation, but it will be outcompeted by the defectors. You might also
     see the average age decline briefly as the defectors take over because all the old coops
     die out and the new defectors are young.
@@ -284,13 +286,12 @@ class Population:
     # Double list due to time series data (we want to keep all generations)
     players: list[list[Player]] = field(default_factory=list)
 
-    @property
-    def population_counts(self) -> dict[str, int]:
+    def get_population_counts(self, gen: int = -1) -> dict[str, int]:
         return {
             player.strategy_name: [
-                strat.strategy_name for strat in self.players[-1]
+                strat.strategy_name for strat in self.players[gen]
             ].count(player.strategy_name)
-            for player in self.players[-1]
+            for player in flatten(self.players)  # Include all generations (so we get 0 for extinct species, rather than missing)
         }
     
     @property
@@ -364,6 +365,7 @@ class Population:
         """
         After the round is run, this method can be called to get a summary.
         """
+        raise NotImplementedError("This method is not yet implemented.")
         # OLD CODE BELOW. TODO: Update this to work with the new data structure.
         # sorted_scores = sorted(avg_scores_per_round.items(), key=lambda x: x[1], reverse=True)
         # best = sorted_scores[0]
@@ -428,5 +430,5 @@ if __name__ == "__main__":
     pop = Population([[Player(AlwaysCoop()), Player(AlwaysCoop()), Player(AlwaysCoop()), Player(AlwaysCoop())]])
     
     for _ in range(20):
-        print(pop.generation, pop.population_counts, pop.population_size, pop.population_average_age)
+        print(pop.generation, pop.get_population_counts(), pop.population_size, pop.population_average_age)
         pop.do_generation(overall_food=20, mutation_probability=0.1, mutation_strategies=[AlwaysDefect(), AlwaysCoop()])

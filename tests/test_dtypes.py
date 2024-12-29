@@ -1,4 +1,4 @@
-from utils import Strategy, Action, History, round_probabilistically, PAYOFF_MATRIX, Player
+from utils import Strategy, Action, History, round_probabilistically, PAYOFF_MATRIX, Player, flatten
 from collections.abc import MutableSequence
 import pytest
 
@@ -177,6 +177,12 @@ def test_player_change_strategy(player_coop, player_defect, defect_class):
     assert player_coop.age == 0
     assert player_coop.most_recent_score == 0
     assert player_coop.battle(player_defect, rounds=17) == PAYOFF_MATRIX[(Action.DEFECT, Action.DEFECT)]
+
+
+def test_flatten():
+    list_of_lists = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+    flat_list = flatten(list_of_lists)
+    assert flat_list == [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 
 def test_strategy():
