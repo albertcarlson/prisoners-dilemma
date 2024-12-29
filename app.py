@@ -58,7 +58,7 @@ def generate_new_population(
         species: Iterable[Strategy] = EXAMPLE_SPECIES.values()
 ) -> Population:
     players = []
-    for strategy in species[:1]:
+    for strategy in species:
         for _ in range(starting_population):
             players.append(Player(strategy))
     return Population([players])
