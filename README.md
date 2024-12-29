@@ -34,3 +34,22 @@ To run the tests to make sure everything works correctly, use the following comm
 uv run pytest
 ```
 Although I have set up a CI/CD pipeline with GitHub Actions, which runs the tests automatically on every push, but if you want you can run them locally to make sure everything works as expected.
+
+## Example
+
+Below, I ran the simulation with only two possible strategies ("species“):
+- Cooperators, who always cooperate no matter what; and
+- Defectors, who always defect no matter what.
+
+I started with a population of just 300 cooperators, with a mutation rate of 0.01.
+As is evident in the screenshot (from the streamlit application), eventually a
+defector appeared from mutation and begins to exploit the cooperators (due to how
+the payoff matrix is structured), so it reproduces and grows in numbers. Eventually
+the cooperators go extinct.
+
+Furthermore, the overall population shrinks, since the defectors are "less efficient
+overall" (as long as you specify the DEFECT-DEFECT reward in the payoff matrix to be
+less than the COOP-COOP reward). This demonstrates the prisoner's dilemma and the
+tragedy of the commons.
+
+![Example of Cooperation vs Defection](images/example_coop_defect.png)
