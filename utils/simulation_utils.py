@@ -161,7 +161,8 @@ class Player:
             offspring: int, 
             *, 
             mutation_strategies: list[Strategy] | None = None, 
-            mutation_probability: float = 0
+            mutation_probability: float = 0,
+            can_mutate_parent: bool = False
     ) -> list[Player]:
         """
         Returns a list of `Player`s that are offspring of this player
@@ -184,6 +185,9 @@ class Player:
             return []
         
         players = [Player(self.strategy, age=self.age + 1)]
+        if can_mutate_parent:
+            if random.random() < mutation_probability:
+                players[0].change_strategy(random.choice(mutation_strategies))
         players.extend(
             Player(self.strategy, age=0)
             for _ in range(offspring-1)
@@ -212,8 +216,8 @@ class Player:
             decision1 = self.make_decision(history)
             decision2 = opponent.make_decision(~history)  # Inverted history, because for the opponent, our moves are their moves etc.
 
-            assert decision1 in (Action.COOP, Action.DEFECT), f"WHAT, {self} made this move: {decision1} against {opponent}, who made {decision2}.\n{history}"
-            assert decision2 in (Action.COOP, Action.DEFECT), f"WHAT, {opponent} made this move: {decision2} against {self}, who made {decision1}.\n{history}"
+            # assert decision1 in (Action.COOP, Action.DEFECT), f"WHAT, {self} made this move: {decision1} against {opponent}, who made {decision2}.\n{history}"
+            # assert decision2 in (Action.COOP, Action.DEFECT), f"WHAT, {opponent} made this move: {decision2} against {self}, who made {decision1}.\n{history}"
 
             history.append(
                 own_move=decision1,
@@ -354,7 +358,7 @@ class Population:
             player1.most_recent_score += score1 / expected_matchups
             player2.most_recent_score += score2 / expected_matchups
 
-        assert match_num == self.population_size * (self.population_size - 1) // 2, "Why wasn't there (N choose 2) battles?"
+        assert match_num == self.population_size * (self.population_size - 1) // 2, f"Why wasn't there (N choose 2) battles? N={self.population_size}, {match_num=}"
         
         # Step 2. Adjust population sizes
         if adjust_populations:

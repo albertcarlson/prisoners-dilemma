@@ -40,8 +40,9 @@ starting_population = col1.number_input("Starting population per species", value
 
 rounds = col2.number_input("Rounds per battle", value=50, min_value=1, max_value=1000, step=5, disabled=not advanced)
 overall_food = col3.number_input("Overall food available", value=100, min_value=0, max_value=2_000, step=25)
-matchup_rate = col2.number_input("Matchup rate", value=1.0, min_value=0.0, max_value=1.0, step=0.01, disabled=not advanced)
-mutation_rate = col3.number_input("Mutation rate", value=0.01, min_value=0.0, max_value=1.0, step=0.01)
+matchup_rate = col1.number_input("Matchup rate", value=1.0, min_value=0.0, max_value=1.0, step=0.01, disabled=not advanced)
+mutation_rate = col2.number_input("Mutation rate", value=0.01, min_value=0.0, max_value=1.0, step=0.01)
+can_mutate_parent = col3.checkbox("Can mutate parent", value=False)
 
 st.write("Adjust overall food mid-game to introduce famines or periods of plenty.")
 st.write("Adjust mutation rate to increase the probability that offspring uses a different strategy than its parent.")
@@ -85,7 +86,8 @@ if col1.button("Run 1 generation"):
         mutation_probability=mutation_rate, 
         mutation_strategies=[EXAMPLE_SPECIES[strategy] for strategy in species],
         rounds=rounds, 
-        overall_food=overall_food
+        overall_food=overall_food,
+        can_mutate_parent=can_mutate_parent,
     )
 
 if col2.button("Run 5 generations"):
@@ -96,7 +98,8 @@ if col2.button("Run 5 generations"):
             mutation_probability=mutation_rate, 
             mutation_strategies=[EXAMPLE_SPECIES[strategy] for strategy in species],
             rounds=rounds, 
-            overall_food=overall_food
+            overall_food=overall_food,
+            can_mutate_parent=can_mutate_parent,
         )
 
 if col3.button("Reset simulation"):
@@ -112,9 +115,10 @@ st.write(f"Mutation probability: {mutation_rate}, Matchup rate: {matchup_rate}, 
 st.markdown("<h4 style='text-align: center;'>Current population counts</h4>", unsafe_allow_html=True)
 st.bar_chart(st.session_state.population.get_population_counts(), x_label="Species", y_label="Count")
 
-
 # Stacked area chart of population counts
 if st.session_state.generation > 0:
     st.markdown("<h4 style='text-align: center;'>Development of population</h4>", unsafe_allow_html=True)
-    st.area_chart([st.session_state.population.get_population_counts(gen) for gen in range(1, st.session_state.generation)], x_label="Generation", y_label="Count")
+    # TODO: Add possibility of nicer coloring, e.g. color=["#0f4cd1", "#a8324a", "#32a852"][:(len(species))]
+    st.area_chart([st.session_state.population.get_population_counts(gen) for gen in range(1, st.session_state.generation)], x_label="Generation", y_label="Count") 
+
 
