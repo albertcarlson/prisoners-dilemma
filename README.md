@@ -59,6 +59,10 @@ Tit-for-Tats for them to have enough others they could be productive with.
 
 ![Example of Cooperation vs Defection](images/example_coop_defect_titfortat.png)
 
+(If you're wondering, the reason for the population increase around generation 30
+to 40 was because I increased the overall food available in hopes it would speed
+up the overtake of the Tit-for-Tats.)
+
 ## Testing
 
 To run the tests to make sure everything works correctly, use the following command:
