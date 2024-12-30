@@ -15,6 +15,9 @@ DEFECT = Action.DEFECT
 
 
 class TitForTat(Strategy):
+    """
+    Starts by cooperating, then does whatever the opponent did last
+    """
     def decide(self, history: History) -> Action:
         if len(history) == 0:
             return COOP
@@ -23,6 +26,10 @@ class TitForTat(Strategy):
 
 
 class ThreeChances(Strategy):
+    """
+    Defects forever if opponent defected 3 or more times in past,
+    otherwise cooperates
+    """
     def decide(self, history):
         if history.opponent_moves.count(DEFECT) >= 3:
             # defect forever if opponent defected 3 times in past
@@ -32,11 +39,19 @@ class ThreeChances(Strategy):
 
 
 class Random(Strategy):
+    """
+    Randomly selects an action with equal probability each turn
+    """
     def decide(self, history):
         return random_action()
     
 
 class Random2(Strategy):
+    """
+    Randomly selects an action with probability based on opponent's past.
+    E.g. in the 11th turn, if the opponent defected 8 times and cooperated
+    2 times in the first 10 turns, the probability of defecting is 8/10 = 80%
+    """
     def decide(self, history):
         if len(history.opponent_moves) == 0:
             return COOP
@@ -47,6 +62,9 @@ class Random2(Strategy):
 
 
 class TitForTwoTats(Strategy):
+    """
+    Starts by cooperating, then defects if opponent defects twice in a row
+    """
     def decide(self, history):
         if len(history.opponent_moves) < 2:
             return COOP
@@ -57,16 +75,29 @@ class TitForTwoTats(Strategy):
 
 
 class AlwaysDefect(Strategy):
+    """
+    Always defects, regardless of opponent's actions
+    """
     def decide(self, history):
         return DEFECT
     
 
 class AlwaysCoop(Strategy):
+    """
+    Always cooperates, regardless of opponent's actions
+    """
     def decide(self, history):
         return COOP
 
 
 class Tester(Strategy):
+    """
+    Tries to exploit generous strategies:
+    - Defects in first move
+    - Cooperates in second and third move, and checks opponent's response
+    - Keeps exploiting every other move if opponent cooperates in 2nd move,
+    - Otherwise plays Tit for Tat
+    """
     def decide(self, history: History) -> Action:
         if len(history) == 0:
             return DEFECT  # defect from the start
@@ -84,24 +115,11 @@ class Tester(Strategy):
             return history.opponent_moves[-1] 
 
 
-class RepeatWhatWorks(Strategy):
-    def decide(self, history):
-        if len(history) < 5:
-            # start off randomly
-            return random_action()
-
-        own_score, opponent_score = history.score
-        
-        if own_score >= opponent_score:
-            # if ahead, keep doing what we're doing
-            return random.choice(history.own_moves)
-        
-        else:
-            # do the "opposite" of a random choice
-            return ~random.choice(history.own_moves)
-
-
 class Joss(Strategy):
+    """
+    Tit for Tat, except with 10% probability it may
+    defect for no reason, trying to be sneaky
+    """
     def decide(self, history: History) -> Action:
         if len(history) == 0:
             return COOP  # coop from the start
@@ -113,23 +131,11 @@ class Joss(Strategy):
             return history.opponent_moves[-1]
 
 
-class Selps(Strategy):
-    """
-    follow the pattern
-    3 coop, 1 defect, 2 coop, 5 defect
-    cyclically with period 11
-    """
-    def decide(self, history: History) -> Action:
-        turn_number = len(history) + 1
-        mod11 = turn_number % 11
-        if mod11 in (1, 2, 3, 5, 6):
-            return COOP
-        elif mod11 in (4, 7, 8, 9, 10, 0):
-            return DEFECT
-        assert False
-
-
 class Pavlov(Strategy):
+    """
+    Starts by cooperating, then coops if it did the same as the
+    opponent last move, otherwise defects if they did different moves.
+    """
     def decide(self, history: History) -> Action:
         if len(history) == 0:
             return COOP
@@ -141,6 +147,10 @@ class Pavlov(Strategy):
 
 
 class Majority(Strategy):
+    """
+    Starts by cooperating, then does what the opponent most frequently
+    did in the past.
+    """
     def decide(self, history: History) -> Action:
         if len(history) == 0:
             return COOP
@@ -150,6 +160,13 @@ class Majority(Strategy):
 
 
 class GenerousTitForTat(Strategy):
+    """
+    Tit for Tat, except might coop occasionally (20% chance)
+    despite the opponent defecting.
+    
+    Tries to escape "viscious cycles of defection" against
+    other otherwise nice strategies this way
+    """
     def decide(self, history: History) -> Action:
         if len(history) == 0:
             return COOP
@@ -160,6 +177,9 @@ class GenerousTitForTat(Strategy):
 
 
 class AngryRevenge(Strategy):
+    """
+    Coops until the opponent defects once, then always defects
+    """
     def decide(self, history: History) -> Action:
         if len(history) == 0:
             return COOP
@@ -183,9 +203,7 @@ EXAMPLE_SPECIES: dict[str, Strategy] = {
         AlwaysDefect(),
         AlwaysCoop(),
         Tester(),
-        RepeatWhatWorks(),
         Joss(),
-        Selps(),
         Pavlov(),
         Majority(),
         GenerousTitForTat(),
