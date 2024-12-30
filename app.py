@@ -8,15 +8,25 @@ import pandas as pd
 
 
 
+SPECIES: dict[str, Strategy] = EXAMPLE_SPECIES  # Change this if you want to use a different set of species
+
+
 
 st.title("Prisoner's Dilemma Ecological Simulation")
 
 
 st.subheader("Species to include")
 st.write("Make your own species in `catalogue/example_species.py` (or make a new file here replicating the current pattern).")
-species = st.multiselect("Select species", EXAMPLE_SPECIES)
+species = st.multiselect("Select species", SPECIES)
 
-
+# Drop-down menu with explanations of the species (from their docstrings)
+with st.expander("Species explanations"):
+    # A table with the species and their docstrings
+    df = pd.DataFrame({
+        "Species": [species_name for species_name in SPECIES],
+        "Description": [SPECIES[species_name].__doc__ or "(No description, add a docstring)" for species_name in SPECIES],
+    }).set_index("Species")
+    st.table(df)
 
 st.subheader("Payoff matrix")
 
@@ -55,7 +65,7 @@ st.write("\n")
 
 def generate_new_population(
         starting_population: int = starting_population, 
-        species: Iterable[Strategy] = EXAMPLE_SPECIES.values()
+        species: Iterable[Strategy] = SPECIES.values()
 ) -> Population:
     players = []
     for strategy in species:
@@ -73,7 +83,7 @@ if "generation" not in st.session_state:
     st.session_state.generation = 0
 
 if st.session_state.generation == 0:
-    st.session_state.population = generate_new_population(species=[EXAMPLE_SPECIES[strategy] for strategy in species])
+    st.session_state.population = generate_new_population(species=[SPECIES[strategy] for strategy in species])
 
 
 col1, col2, col3 = st.columns(3)
@@ -84,7 +94,7 @@ if col1.button("Run 1 generation"):
     st.session_state.population.do_generation(
         matchup_rate=matchup_rate, 
         mutation_probability=mutation_rate, 
-        mutation_strategies=[EXAMPLE_SPECIES[strategy] for strategy in species],
+        mutation_strategies=[SPECIES[strategy] for strategy in species],
         rounds=rounds, 
         overall_food=overall_food,
         can_mutate_parent=can_mutate_parent,
@@ -96,7 +106,7 @@ if col2.button("Run 5 generations"):
         st.session_state.population.do_generation(
             matchup_rate=matchup_rate, 
             mutation_probability=mutation_rate, 
-            mutation_strategies=[EXAMPLE_SPECIES[strategy] for strategy in species],
+            mutation_strategies=[SPECIES[strategy] for strategy in species],
             rounds=rounds, 
             overall_food=overall_food,
             can_mutate_parent=can_mutate_parent,
@@ -104,13 +114,13 @@ if col2.button("Run 5 generations"):
 
 if col3.button("Reset simulation"):
     st.session_state.generation = 0
-    st.session_state.population = generate_new_population(species=[EXAMPLE_SPECIES[strategy] for strategy in species])
+    st.session_state.population = generate_new_population(species=[SPECIES[strategy] for strategy in species])
+
 
 st.write(f"Generation: {st.session_state.generation}")
 st.write(f"Total population: {st.session_state.population.population_size}")
 st.write(f"Population average age: {st.session_state.population.population_average_age}")
 
-st.write(f"Mutation probability: {mutation_rate}, Matchup rate: {matchup_rate}, Rounds per battle: {rounds}, Overall food: {overall_food}")
 
 st.markdown("<h4 style='text-align: center;'>Current population counts</h4>", unsafe_allow_html=True)
 st.bar_chart(st.session_state.population.get_population_counts(), x_label="Species", y_label="Count")
