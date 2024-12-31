@@ -53,6 +53,7 @@ overall_food = col3.number_input("Overall food available", value=100, min_value=
 matchup_rate = col1.number_input("Matchup rate", value=1.0, min_value=0.0, max_value=1.0, step=0.01, disabled=not advanced)
 mutation_rate = col2.number_input("Mutation rate", value=0.01, min_value=0.0, max_value=1.0, step=0.01)
 can_mutate_parent = col3.checkbox("Can mutate parent", value=False)
+can_mutate_into_extinct = col3.checkbox("Can mutate into extinct species", value=True, disabled=True)  # TODO: Implement this feature
 
 st.write("Adjust overall food mid-game to introduce famines or periods of plenty.")
 st.write("Adjust mutation rate to increase the probability that offspring uses a different strategy than its parent.")
@@ -101,8 +102,8 @@ if col1.button("Run 1 generation"):
     )
 
 if col2.button("Run 5 generations"):
-    st.session_state.generation += 5
     for _ in range(5):
+        st.session_state.generation += 1
         st.session_state.population.do_generation(
             matchup_rate=matchup_rate, 
             mutation_probability=mutation_rate, 
@@ -119,7 +120,7 @@ if col3.button("Reset simulation"):
 
 st.write(f"Generation: {st.session_state.generation}")
 st.write(f"Total population: {st.session_state.population.population_size}")
-st.write(f"Population average age: {st.session_state.population.population_average_age}")
+st.write(f"Population average age: {st.session_state.population.population_average_age:.2f}")
 
 
 st.markdown("<h4 style='text-align: center;'>Current population counts</h4>", unsafe_allow_html=True)
