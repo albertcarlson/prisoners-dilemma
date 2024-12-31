@@ -35,8 +35,8 @@ st.write("The payoff matrix below shows your reward for the different outcomes. 
          A higher score is better for the player.")
 df = pd.DataFrame({
     "Your Reward": ["You COOP", "You DEFECT"],
-    "Opponent COOPS": [PAYOFF_MATRIX[(Action.COOP, Action.COOP)][0], PAYOFF_MATRIX[(Action.DEFECT, Action.COOP)][0]],
-    "Opponent DEFECTS": [PAYOFF_MATRIX[(Action.COOP, Action.DEFECT)][0], PAYOFF_MATRIX[(Action.DEFECT, Action.DEFECT)][0]],
+    "Opponent COOPS": [PAYOFF_MATRIX.get_reward(Action.COOP, Action.COOP)[0], PAYOFF_MATRIX.get_reward(Action.DEFECT, Action.COOP)[0]],
+    "Opponent DEFECTS": [PAYOFF_MATRIX.get_reward(Action.COOP, Action.DEFECT)[0], PAYOFF_MATRIX.get_reward(Action.DEFECT, Action.DEFECT)[0]],
 }).set_index("Your Reward")
 st.table(df)
 st.info("*At the moment, you need to change `config.ini` to adjust with the payoff matrix.*")

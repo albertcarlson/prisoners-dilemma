@@ -137,7 +137,7 @@ class PayoffMatrix:
         }
 
 
-PAYOFF_MATRIX = PayoffMatrix.from_config().as_dict()
+PAYOFF_MATRIX = PayoffMatrix.from_config()
 
 
 
@@ -180,7 +180,7 @@ class History:
             
             # Try to identify an issue:
             try:
-                own_increase, opponent_increase = PAYOFF_MATRIX[own_move, opponent_move]
+                own_increase, opponent_increase = PAYOFF_MATRIX.get_reward(own_move, opponent_move)
             except KeyError:
                 print(own_move, opponent_move, PAYOFF_MATRIX)
                 print(type(own_move), type(opponent_move), type(PAYOFF_MATRIX))
