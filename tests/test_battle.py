@@ -13,10 +13,8 @@ def test_tit_for_tat_battle(payoff_matrix):
     tit4tat1 = Player(EXAMPLE_SPECIES["TitForTat"])
     tit4tat2 = Player(EXAMPLE_SPECIES["TitForTat"])
 
-    score = battle(tit4tat1, tit4tat2, rounds=100)
+    score = battle(tit4tat1, tit4tat2, rounds=100, payoff_matrix=payoff_matrix)
 
-    # TODO! CHANGE THIS, BECAUSE THE battle METHOD WILL IN THE FUTURE NOT
-    # NECESSARILY USE payoff_matrix_3 (the one from config.ini)
     coop_coop_1, coop_coop_2 = payoff_matrix.get_reward(Action.COOP, Action.COOP)
 
     expected_score = (1.0*coop_coop_1, 1.0*coop_coop_2)
@@ -29,10 +27,8 @@ def test_tit_for_tat_vs_tester(payoff_matrix):
     tit4tat = Player(EXAMPLE_SPECIES["TitForTat"])
     tester  = Player(EXAMPLE_SPECIES["Tester"])
 
-    score = battle(tit4tat, tester, rounds=100)
+    score = battle(tit4tat, tester, rounds=100, payoff_matrix=payoff_matrix)
 
-    # TODO! CHANGE THIS, BECAUSE THE battle METHOD WILL IN THE FUTURE NOT
-    # NECESSARILY USE payoff_matrix_3 (the one from config.ini)
     coop_coop_1, coop_coop_2     = payoff_matrix.get_reward(Action.COOP, Action.COOP)
     coop_defect_1, coop_defect_2 = payoff_matrix.get_reward(Action.COOP, Action.DEFECT)
     defect_coop_1, defect_coop_2 = payoff_matrix.get_reward(Action.DEFECT, Action.COOP)

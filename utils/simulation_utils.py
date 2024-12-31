@@ -274,7 +274,7 @@ class Player:
         self.strategy = new_strategy
         self.strategy_name = new_strategy.__class__.__name__
 
-    def battle(self, opponent: Player, *, rounds: int = 100) -> tuple[int, int]:
+    def battle(self, opponent: Player, *, rounds: int = 100, payoff_matrix: PayoffMatrix = PAYOFF_MATRIX) -> tuple[int, int]:
         """
         Battles two `Player`s against each other for `rounds` rounds,
         returning the scores for each player (normalized by the number of rounds
@@ -296,7 +296,7 @@ class Player:
 
         assert len(history) == rounds
                 
-        return history.get_score()
+        return history.get_score(payoff_matrix=payoff_matrix)
         
     def __repr__(self) -> str:
         return f"<Player object at {hex(id(self))} using {self.strategy_name}>"
@@ -308,6 +308,7 @@ def battle(
         player2: Player,
         *,
         rounds: int = 100,
+        payoff_matrix: PayoffMatrix = PAYOFF_MATRIX
     ) -> tuple[int, int]:
     """
     Battles two `Player`s against each other for `rounds` rounds,
@@ -317,7 +318,7 @@ def battle(
     This function is just syntactic sugar for `player1.battle(player2)`,
     so it appears symmetric, i.e. `battle(player1, player2)`.
     """
-    return player1.battle(player2, rounds=rounds)
+    return player1.battle(player2, rounds=rounds, payoff_matrix=payoff_matrix)
 
 
 
@@ -383,7 +384,7 @@ class Population:
     def do_generation(
         self,
         matchup_rate: float = 1.0,
-        # payoff_matrix,  # TODO: Support payoff matrix that isn't just the global constant loaded from config.ini
+        payoff_matrix: PayoffMatrix = PAYOFF_MATRIX,
         rounds: int = 50,
         overall_food: int = 1_000,
         adjust_populations: bool = True,
@@ -397,6 +398,9 @@ class Population:
           N is the population size. While if `matchup_rate` is 0.5, around half
           of the matchups occur, and every player is expected to meet (N-1)/2 others.
           Reduce this variable to speed up a generation.
+
+        - The `payoff_matrix` is used to determine the rewards for each player
+          in each matchup. By default, it uses the one in `config.ini`.
 
         - The `rounds` are how long a game lasts: For each matchup, the players
           play `rounds` rounds of the prisoner's dilemma game, each remembering the
@@ -423,7 +427,7 @@ class Population:
             if random.random() > matchup_rate:
                 continue
             
-            score1, score2 = battle(player1, player2, rounds=rounds)
+            score1, score2 = battle(player1, player2, rounds=rounds, payoff_matrix=payoff_matrix)
             
             player1.most_recent_score += score1 / expected_matchups
             player2.most_recent_score += score2 / expected_matchups
