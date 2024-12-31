@@ -171,20 +171,14 @@ class History:
         so that the opponent's moves are now our moves and vice versa."""
         return History(self.opponent_moves, self.own_moves)
     
-    @property
-    def score(self) -> tuple[float, float]:
+    def get_score(self, payoff_matrix: PayoffMatrix = PAYOFF_MATRIX) -> tuple[float, float]:
         """Returns a tuple of (own_score, opponent_score) from a History object."""
         own_score = 0
         opponent_score = 0
         for own_move, opponent_move in self:
             
-            # Try to identify an issue:
-            try:
-                own_increase, opponent_increase = PAYOFF_MATRIX.get_reward(own_move, opponent_move)
-            except KeyError:
-                print(own_move, opponent_move, PAYOFF_MATRIX)
-                print(type(own_move), type(opponent_move), type(PAYOFF_MATRIX))
-                raise
+            own_increase, opponent_increase = payoff_matrix.get_reward(own_move, opponent_move)
+
             own_score += own_increase
             opponent_score += opponent_increase
 
@@ -302,7 +296,7 @@ class Player:
 
         assert len(history) == rounds
                 
-        return history.score
+        return history.get_score()
         
     def __repr__(self) -> str:
         return f"<Player object at {hex(id(self))} using {self.strategy_name}>"
