@@ -108,11 +108,17 @@ class History:
         opponent_score = 0
         for own_move, opponent_move in self:
             
-            own_increase, opponent_increase = PAYOFF_MATRIX[own_move, opponent_move]
+            # Try to identify an issue:
+            try:
+                own_increase, opponent_increase = PAYOFF_MATRIX[own_move, opponent_move]
+            except KeyError:
+                print(own_move, opponent_move, PAYOFF_MATRIX)
+                print(type(own_move), type(opponent_move), type(PAYOFF_MATRIX))
+                raise
             own_score += own_increase
             opponent_score += opponent_increase
 
-        return own_score / len(self), opponent_score / len(self)  # Normalize score for useful comparison
+        return own_score / len(self), opponent_score / len(self)  # Normalize score for useful comparison invariant of rounds
 
     def __repr__(self) -> str:
         return f"History(own_moves={self.own_moves}, opponent_moves={self.opponent_moves})"
