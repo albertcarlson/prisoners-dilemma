@@ -1,11 +1,11 @@
-from utils import Player, Action, battle, PAYOFF_MATRIX
+from utils import Player, Action, battle, PayoffMatrix
 from catalogue import EXAMPLE_SPECIES
 import pytest
 
 
 @pytest.fixture
 def payoff_matrix():
-    return PAYOFF_MATRIX
+    return PayoffMatrix.from_config("config.ini")
 
 
 def test_tit_for_tat_battle(payoff_matrix):
