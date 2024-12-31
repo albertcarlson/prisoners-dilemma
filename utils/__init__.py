@@ -9,6 +9,7 @@ from utils.simulation_utils import (
     flatten,
     round_probabilistically, 
     random_action, 
+    PayoffMatrix,
     PAYOFF_MATRIX, 
     STARTING_POPULATION
 )

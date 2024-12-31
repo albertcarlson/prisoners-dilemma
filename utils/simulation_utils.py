@@ -49,25 +49,95 @@ def random_action() -> Action:
 
 
 
-def _read_payoff_matrix(filename="config.ini") -> dict[tuple[Action, Action], tuple[int, int]]:
-    """Reads the payoff matrix from the config file.
-    Returns a dictionary of (Action, Action) -> (int, int) mappings.
-    The payoff matrix is symmetric, so the only reason there is both
-    an (COOP, DEFECT) and (DEFECT, COOP) is to make it easier to just do
+class PayoffMatrix:
+    """
+    Payoff Matrix as a data structure with a `get_reward`
+    method to easily read the reward for a given pair of actions.
 
-    >>> _read_payoff_matrix()[(some_action, another_action)]
+    ## Examples
+    >>> matrix = PayoffMatrix(3, 0, 5, 1)
+    >>> matrix.get_reward(Action.COOP, Action.DEFECT)
+    (0, 5)
+
+    >>> matrix = PayoffMatrix.from_config("config.ini")
+    >>> matrix.get_reward(Action.DEFECT, Action.DEFECT)
+    (1, 1)  # As long as the config.ini file 1 as the value for defecting against defecting.
+    """
+    def __init__(
+            self, 
+            coop_coop: int, 
+            coop_defect: int,
+            defect_coop: int,
+            defect_defect: int
+    ) -> None:
+        self.coop_coop     = coop_coop
+        self.coop_defect   = coop_defect
+        self.defect_coop   = defect_coop
+        self.defect_defect = defect_defect
+
+    @classmethod
+    def from_config(cls, filename="config.ini") -> PayoffMatrix:
+        config = configparser.ConfigParser()
+        config.read(filename)
+        return cls(
+            int(config.get('PayoffMatrix', 'CoopCoop'    )),
+            int(config.get('PayoffMatrix', 'CoopDefect'  )),
+            int(config.get('PayoffMatrix', 'DefectCoop'  )),
+            int(config.get('PayoffMatrix', 'DefectDefect'))
+        )
     
-    for arbitrary some_action, another_action ∈ {COOP, DEFECT}."""    
-    config = configparser.ConfigParser()
-    config.read(filename)
-    return {
-        (Action.COOP, Action.COOP): (int(config.get('PayoffMatrix', 'CoopCoop')), int(config.get('PayoffMatrix', 'CoopCoop'))),
-        (Action.COOP, Action.DEFECT): (int(config.get('PayoffMatrix', 'CoopDefect')), int(config.get('PayoffMatrix', 'DefectCoop'))),
-        (Action.DEFECT, Action.COOP): (int(config.get('PayoffMatrix', 'DefectCoop')), int(config.get('PayoffMatrix', 'CoopDefect'))),
-        (Action.DEFECT, Action.DEFECT): (int(config.get('PayoffMatrix', 'DefectDefect')), int(config.get('PayoffMatrix', 'DefectDefect'))),
-    }
+    def get_reward(self, action1: Action, action2: Action) -> tuple[int, int]:
+        """
+        Based on the two actions, returns the reward for each player.
 
-PAYOFF_MATRIX = _read_payoff_matrix()
+        ## Example
+        >>> matrix = PayoffMatrix(3, 0, 5, 1)
+        >>> matrix.get_reward(Action.COOP, Action.DEFECT)
+        (0, 5)
+        """
+        match action1, action2:
+            case Action.COOP, Action.COOP:
+                return self.coop_coop, self.coop_coop
+            case Action.COOP, Action.DEFECT:
+                return self.coop_defect, self.defect_coop
+            case Action.DEFECT, Action.COOP:
+                return self.defect_coop, self.coop_defect
+            case Action.DEFECT, Action.DEFECT:
+                return self.defect_defect, self.defect_defect
+            case _:
+                raise ValueError(f"Invalid actions: {action1}, {action2}")
+    
+    def as_dict(self) -> dict[tuple[Action, Action], tuple[int, int]]:
+        """
+        Returns the payoff matrix as a dictionary of (Action, Action)
+        -> (int, int) mappings. The payoff matrix is symmetric, so the
+        only reason there is both an (COOP, DEFECT) and (DEFECT, COOP)
+        
+        >>> payoff_matrix[(some_action, another_action)]
+        
+        for arbitrary some_action, another_action ∈ {COOP, DEFECT}.
+        
+        ## Example
+        >>> matrix = PayoffMatrix(3, 0, 5, 1)
+        >>> matrix.as_dict()
+        {
+            (Action.COOP, Action.COOP): (3, 3),
+            (Action.COOP, Action.DEFECT): (0, 5),
+            (Action.DEFECT, Action.COOP): (5, 0),
+            (Action.DEFECT, Action.DEFECT): (1, 1),
+        }
+        
+        Exists for legacy reasons.
+        """
+        return  {
+            (Action.COOP, Action.COOP): (self.coop_coop, self.coop_coop),
+            (Action.COOP, Action.DEFECT): (self.coop_defect, self.defect_coop),
+            (Action.DEFECT, Action.COOP): (self.defect_coop, self.coop_defect),
+            (Action.DEFECT, Action.DEFECT): (self.defect_defect, self.defect_defect),
+        }
+
+
+PAYOFF_MATRIX = PayoffMatrix.from_config().as_dict()
 
 
 
