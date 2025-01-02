@@ -1,10 +1,9 @@
 from utils import PAYOFF_MATRIX, STARTING_POPULATION, Action, Player, Population, Strategy
 from catalogue import EXAMPLE_SPECIES
 from collections.abc import Iterable
-#from stqdm import stqdm
 import streamlit as st
 import pandas as pd
-#import time
+import time
 
 
 
@@ -87,22 +86,24 @@ if st.session_state.generation == 0:
     st.session_state.population = generate_new_population(species=[SPECIES[strategy] for strategy in species])
 
 
-col1, col2, col3 = st.columns(3)
+col1, col2 = st.columns(2)
 
 
-if col1.button("Run 1 generation"):
-    st.session_state.generation += 1
-    st.session_state.population.do_generation(
-        matchup_rate=matchup_rate, 
-        mutation_probability=mutation_rate, 
-        mutation_strategies=[SPECIES[strategy] for strategy in species],
-        rounds=rounds, 
-        overall_food=overall_food,
-        can_mutate_parent=can_mutate_parent,
-    )
+# Initialize the last click time in session state if it doesn't exist
+if 'last_click_time' not in st.session_state:
+    st.session_state.last_click_time = 0
 
-if col2.button("Run 5 generations"):
-    for _ in range(5):
+
+run_generation = col1.button("Run 1 generation")
+
+if run_generation:
+    
+    current_time = time.time()
+    # Check if enough time has passed since the last click,
+    # to prevent threading issues (or something?)
+    # with stqdm(total=1, desc="Running generation", key="generation") as progress:
+    if current_time - st.session_state.last_click_time > 2:
+        st.session_state.last_click_time = current_time
         st.session_state.generation += 1
         st.session_state.population.do_generation(
             matchup_rate=matchup_rate, 
@@ -112,8 +113,14 @@ if col2.button("Run 5 generations"):
             overall_food=overall_food,
             can_mutate_parent=can_mutate_parent,
         )
+    else:
+        st.warning("Please wait a few seconds before clicking the button simulation again. \
+                    Quickly pressing causes issues with the function being called multiple \
+                    times simultaneously, probably due to Streamlit's threading.")
+        st.stop()
 
-if col3.button("Reset simulation"):
+
+if col2.button("Reset simulation"):
     st.session_state.generation = 0
     st.session_state.population = generate_new_population(species=[SPECIES[strategy] for strategy in species])
 
