@@ -3,7 +3,7 @@ from catalogue import EXAMPLE_SPECIES
 from collections.abc import Iterable
 import streamlit as st
 import pandas as pd
-import time
+import threading
 
 
 
@@ -86,24 +86,17 @@ if st.session_state.generation == 0:
     st.session_state.population = generate_new_population(species=[SPECIES[strategy] for strategy in species])
 
 
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns(3)
 
 
-# Initialize the last click time in session state if it doesn't exist
-if 'last_click_time' not in st.session_state:
-    st.session_state.last_click_time = 0
+# Lock is used to avoid threading issues with "weird errors" (like a KeyError 
+# when the key clearly existed) when clicking the button too quickly
+if 'lock' not in st.session_state:
+    st.session_state.lock = threading.Lock()
 
 
-run_generation = col1.button("Run 1 generation")
-
-if run_generation:
-    
-    current_time = time.time()
-    # Check if enough time has passed since the last click,
-    # to prevent threading issues (or something?)
-    # with stqdm(total=1, desc="Running generation", key="generation") as progress:
-    if current_time - st.session_state.last_click_time > 2:
-        st.session_state.last_click_time = current_time
+if col1.button("Run 1 generation"):
+    with st.session_state.lock:
         st.session_state.generation += 1
         st.session_state.population.do_generation(
             matchup_rate=matchup_rate, 
@@ -113,16 +106,25 @@ if run_generation:
             overall_food=overall_food,
             can_mutate_parent=can_mutate_parent,
         )
-    else:
-        st.warning("Please wait a few seconds before clicking the button simulation again. \
-                    Quickly pressing causes issues with the function being called multiple \
-                    times simultaneously, probably due to Streamlit's threading.")
-        st.stop()
+
+if col2.button("Run 5 generations"):
+    for _ in range(5):
+        with st.session_state.lock:
+            st.session_state.generation += 1
+            st.session_state.population.do_generation(
+                matchup_rate=matchup_rate, 
+                mutation_probability=mutation_rate, 
+                mutation_strategies=[SPECIES[strategy] for strategy in species],
+                rounds=rounds, 
+                overall_food=overall_food,
+                can_mutate_parent=can_mutate_parent,
+            )
 
 
-if col2.button("Reset simulation"):
-    st.session_state.generation = 0
-    st.session_state.population = generate_new_population(species=[SPECIES[strategy] for strategy in species])
+if col3.button("Reset simulation"):
+    with st.session_state.lock:
+        st.session_state.generation = 0
+        st.session_state.population = generate_new_population(species=[SPECIES[strategy] for strategy in species])
 
 
 st.write(f"Generation: {st.session_state.generation}")
