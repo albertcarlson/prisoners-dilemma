@@ -1,8 +1,13 @@
-from utils import History, Action
+from utils import History, Action, PayoffMatrix
+import pytest
 
 
+@pytest.fixture
+def payoff_matrix():
+    return PayoffMatrix.from_config("config.ini")
 
-def test_get_score_1():
+
+def test_get_score_1(payoff_matrix):
 
     history = History(
         own_moves=[
@@ -14,12 +19,12 @@ def test_get_score_1():
         ],
     )
 
-    score = history.score
+    score = history.get_score()
 
-    assert score == (3, 3), f"Score should be (3, 3), but was {score}. Did you change the payoff matrix?"
+    assert score == payoff_matrix.get_reward(Action.COOP, Action.COOP), f"Score should be (3, 3), but was {score}."
 
 
-def test_get_score_2():
+def test_get_score_2(payoff_matrix):
 
     history = History(
         own_moves=[
@@ -32,12 +37,14 @@ def test_get_score_2():
         ],
     )
 
-    score = history.score
+    score = history.get_score()
 
-    assert score == (2.5, 2.5), f"Score should be (2.5, 2.5), but was {score}. Did you change the payoff matrix?"
+    expected_score = (payoff_matrix.get_reward(Action.COOP, Action.DEFECT)[0] + payoff_matrix.get_reward(Action.DEFECT, Action.COOP)[0]) / 2
+
+    assert score == (expected_score, expected_score), f"Score should be ({expected_score}, {expected_score}), but was {score}."
 
 
-def test_get_score_3():
+def test_get_score_3(payoff_matrix):
 
     history = History(
         own_moves=[
@@ -50,12 +57,14 @@ def test_get_score_3():
         ],
     )
 
-    score = history.score
+    score = history.get_score()
 
-    assert score == (5.0, 0.0), f"Score should be (5.0, 0.0), but was {score}. Did you change the payoff matrix?"
+    expected_a, expected_b = payoff_matrix.get_reward(Action.DEFECT, Action.COOP)
+
+    assert score == (expected_a, expected_b), f"Score should be ({expected_a}, {expected_b}), but was {score}."
 
 
-def test_get_score_4():
+def test_get_score_4(payoff_matrix):
 
     history = History(
         own_moves=[
@@ -66,12 +75,13 @@ def test_get_score_4():
         ],
     )
 
-    score = history.score
+    score = history.get_score()
+    expected_score = payoff_matrix.get_reward(Action.DEFECT, Action.DEFECT)
 
-    assert score == (1, 1), f"Score should be (1, 1), but was {score}. Did you change the payoff matrix?"
+    assert score == expected_score, f"Score should be {expected_score}, but was {score}. Did you change the payoff matrix?"
 
 
-def test_get_score_5():
+def test_get_score_5(payoff_matrix):
     
     history = History(
         own_moves=[
@@ -98,38 +108,20 @@ def test_get_score_5():
         ],
     )
 
-    score = history.score
+    score = history.get_score()
 
-    assert score == (2.5555555555555554, 2.0), f"Score should be (23, 18), but was {score}. Did you change the payoff matrix?"
-
-
-# def test_print_history():
+    expected_a = 2 * payoff_matrix.get_reward(Action.COOP, Action.COOP)[0] \
+               + 2 * payoff_matrix.get_reward(Action.COOP, Action.DEFECT)[0] \
+               + 3 * payoff_matrix.get_reward(Action.DEFECT, Action.COOP)[0] \
+               + 2 * payoff_matrix.get_reward(Action.DEFECT, Action.DEFECT)[0]
     
-#     history = History(
-#         own_moves=[
-#             Action.COOP,
-#             Action.DEFECT,
-#             Action.COOP,
-#             Action.COOP,
-#             Action.COOP,
-#             Action.DEFECT,
-#             Action.DEFECT,
-#             Action.DEFECT,
-#             Action.DEFECT,
-#         ],
-#         opponent_moves=[
-#             Action.COOP,
-#             Action.COOP,
-#             Action.COOP,
-#             Action.DEFECT,
-#             Action.DEFECT,
-#             Action.COOP,
-#             Action.DEFECT,
-#             Action.DEFECT,
-#             Action.COOP,
-#         ],
-#     )
+    expected_b = 2 * payoff_matrix.get_reward(Action.COOP, Action.COOP)[1] \
+               + 2 * payoff_matrix.get_reward(Action.COOP, Action.DEFECT)[1] \
+               + 3 * payoff_matrix.get_reward(Action.DEFECT, Action.COOP)[1] \
+               + 2 * payoff_matrix.get_reward(Action.DEFECT, Action.DEFECT)[1]
     
-#     print(history)
-#     # assert input("Does the above look alright? [y/n] ").lower() in ("y", "yes"), "The printed history does not look as expected."
-#     assert False, "not properly implemented yet..."
+    expected_a /= len(history)
+    expected_b /= len(history)
+
+    assert score == (expected_a, expected_b), f"Score should be ({expected_a}, {expected_b}), but was {score}."
+

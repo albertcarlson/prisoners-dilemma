@@ -49,25 +49,95 @@ def random_action() -> Action:
 
 
 
-def _read_payoff_matrix(filename="config.ini") -> dict[tuple[Action, Action], tuple[int, int]]:
-    """Reads the payoff matrix from the config file.
-    Returns a dictionary of (Action, Action) -> (int, int) mappings.
-    The payoff matrix is symmetric, so the only reason there is both
-    an (COOP, DEFECT) and (DEFECT, COOP) is to make it easier to just do
+class PayoffMatrix:
+    """
+    Payoff Matrix as a data structure with a `get_reward`
+    method to easily read the reward for a given pair of actions.
 
-    >>> _read_payoff_matrix()[(some_action, another_action)]
+    ## Examples
+    >>> matrix = PayoffMatrix(3, 0, 5, 1)
+    >>> matrix.get_reward(Action.COOP, Action.DEFECT)
+    (0, 5)
+
+    >>> matrix = PayoffMatrix.from_config("config.ini")
+    >>> matrix.get_reward(Action.DEFECT, Action.DEFECT)
+    (1, 1)  # As long as the config.ini file 1 as the value for defecting against defecting.
+    """
+    def __init__(
+            self, 
+            coop_coop: int, 
+            coop_defect: int,
+            defect_coop: int,
+            defect_defect: int
+    ) -> None:
+        self.coop_coop     = coop_coop
+        self.coop_defect   = coop_defect
+        self.defect_coop   = defect_coop
+        self.defect_defect = defect_defect
+
+    @classmethod
+    def from_config(cls, filename="config.ini") -> PayoffMatrix:
+        config = configparser.ConfigParser()
+        config.read(filename)
+        return cls(
+            int(config.get('PayoffMatrix', 'CoopCoop'    )),
+            int(config.get('PayoffMatrix', 'CoopDefect'  )),
+            int(config.get('PayoffMatrix', 'DefectCoop'  )),
+            int(config.get('PayoffMatrix', 'DefectDefect'))
+        )
     
-    for arbitrary some_action, another_action ∈ {COOP, DEFECT}."""    
-    config = configparser.ConfigParser()
-    config.read(filename)
-    return {
-        (Action.COOP, Action.COOP): (int(config.get('PayoffMatrix', 'CoopCoop')), int(config.get('PayoffMatrix', 'CoopCoop'))),
-        (Action.COOP, Action.DEFECT): (int(config.get('PayoffMatrix', 'CoopDefect')), int(config.get('PayoffMatrix', 'DefectCoop'))),
-        (Action.DEFECT, Action.COOP): (int(config.get('PayoffMatrix', 'DefectCoop')), int(config.get('PayoffMatrix', 'CoopDefect'))),
-        (Action.DEFECT, Action.DEFECT): (int(config.get('PayoffMatrix', 'DefectDefect')), int(config.get('PayoffMatrix', 'DefectDefect'))),
-    }
+    def get_reward(self, action1: Action, action2: Action) -> tuple[int, int]:
+        """
+        Based on the two actions, returns the reward for each player.
 
-PAYOFF_MATRIX = _read_payoff_matrix()
+        ## Example
+        >>> matrix = PayoffMatrix(3, 0, 5, 1)
+        >>> matrix.get_reward(Action.COOP, Action.DEFECT)
+        (0, 5)
+        """
+        match action1, action2:
+            case Action.COOP, Action.COOP:
+                return self.coop_coop, self.coop_coop
+            case Action.COOP, Action.DEFECT:
+                return self.coop_defect, self.defect_coop
+            case Action.DEFECT, Action.COOP:
+                return self.defect_coop, self.coop_defect
+            case Action.DEFECT, Action.DEFECT:
+                return self.defect_defect, self.defect_defect
+            case _:
+                raise ValueError(f"Invalid actions: {action1}, {action2}")
+    
+    def as_dict(self) -> dict[tuple[Action, Action], tuple[int, int]]:
+        """
+        Returns the payoff matrix as a dictionary of (Action, Action)
+        -> (int, int) mappings. The payoff matrix is symmetric, so the
+        only reason there is both an (COOP, DEFECT) and (DEFECT, COOP)
+        
+        >>> payoff_matrix[(some_action, another_action)]
+        
+        for arbitrary some_action, another_action ∈ {COOP, DEFECT}.
+        
+        ## Example
+        >>> matrix = PayoffMatrix(3, 0, 5, 1)
+        >>> matrix.as_dict()
+        {
+            (Action.COOP, Action.COOP): (3, 3),
+            (Action.COOP, Action.DEFECT): (0, 5),
+            (Action.DEFECT, Action.COOP): (5, 0),
+            (Action.DEFECT, Action.DEFECT): (1, 1),
+        }
+        
+        Exists for legacy reasons.
+        """
+        return  {
+            (Action.COOP, Action.COOP): (self.coop_coop, self.coop_coop),
+            (Action.COOP, Action.DEFECT): (self.coop_defect, self.defect_coop),
+            (Action.DEFECT, Action.COOP): (self.defect_coop, self.coop_defect),
+            (Action.DEFECT, Action.DEFECT): (self.defect_defect, self.defect_defect),
+        }
+
+
+PAYOFF_MATRIX = PayoffMatrix.from_config()
 
 
 
@@ -101,20 +171,14 @@ class History:
         so that the opponent's moves are now our moves and vice versa."""
         return History(self.opponent_moves, self.own_moves)
     
-    @property
-    def score(self) -> tuple[float, float]:
+    def get_score(self, payoff_matrix: PayoffMatrix = PAYOFF_MATRIX) -> tuple[float, float]:
         """Returns a tuple of (own_score, opponent_score) from a History object."""
         own_score = 0
         opponent_score = 0
         for own_move, opponent_move in self:
             
-            # Try to identify an issue:
-            try:
-                own_increase, opponent_increase = PAYOFF_MATRIX[own_move, opponent_move]
-            except KeyError:
-                print(own_move, opponent_move, PAYOFF_MATRIX)
-                print(type(own_move), type(opponent_move), type(PAYOFF_MATRIX))
-                raise
+            own_increase, opponent_increase = payoff_matrix.get_reward(own_move, opponent_move)
+
             own_score += own_increase
             opponent_score += opponent_increase
 
@@ -210,7 +274,7 @@ class Player:
         self.strategy = new_strategy
         self.strategy_name = new_strategy.__class__.__name__
 
-    def battle(self, opponent: Player, *, rounds: int = 100) -> tuple[int, int]:
+    def battle(self, opponent: Player, *, rounds: int = 100, payoff_matrix: PayoffMatrix = PAYOFF_MATRIX) -> tuple[int, int]:
         """
         Battles two `Player`s against each other for `rounds` rounds,
         returning the scores for each player (normalized by the number of rounds
@@ -232,7 +296,7 @@ class Player:
 
         assert len(history) == rounds
                 
-        return history.score
+        return history.get_score(payoff_matrix=payoff_matrix)
         
     def __repr__(self) -> str:
         return f"<Player object at {hex(id(self))} using {self.strategy_name}>"
@@ -244,6 +308,7 @@ def battle(
         player2: Player,
         *,
         rounds: int = 100,
+        payoff_matrix: PayoffMatrix = PAYOFF_MATRIX
     ) -> tuple[int, int]:
     """
     Battles two `Player`s against each other for `rounds` rounds,
@@ -253,7 +318,7 @@ def battle(
     This function is just syntactic sugar for `player1.battle(player2)`,
     so it appears symmetric, i.e. `battle(player1, player2)`.
     """
-    return player1.battle(player2, rounds=rounds)
+    return player1.battle(player2, rounds=rounds, payoff_matrix=payoff_matrix)
 
 
 
@@ -319,7 +384,7 @@ class Population:
     def do_generation(
         self,
         matchup_rate: float = 1.0,
-        # payoff_matrix,  # TODO: Support payoff matrix that isn't just the global constant loaded from config.ini
+        payoff_matrix: PayoffMatrix = PAYOFF_MATRIX,
         rounds: int = 50,
         overall_food: int = 1_000,
         adjust_populations: bool = True,
@@ -333,6 +398,9 @@ class Population:
           N is the population size. While if `matchup_rate` is 0.5, around half
           of the matchups occur, and every player is expected to meet (N-1)/2 others.
           Reduce this variable to speed up a generation.
+
+        - The `payoff_matrix` is used to determine the rewards for each player
+          in each matchup. By default, it uses the one in `config.ini`.
 
         - The `rounds` are how long a game lasts: For each matchup, the players
           play `rounds` rounds of the prisoner's dilemma game, each remembering the
@@ -359,7 +427,7 @@ class Population:
             if random.random() > matchup_rate:
                 continue
             
-            score1, score2 = battle(player1, player2, rounds=rounds)
+            score1, score2 = battle(player1, player2, rounds=rounds, payoff_matrix=payoff_matrix)
             
             player1.most_recent_score += score1 / expected_matchups
             player2.most_recent_score += score2 / expected_matchups

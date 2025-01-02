@@ -1,10 +1,9 @@
 from utils import PAYOFF_MATRIX, STARTING_POPULATION, Action, Player, Population, Strategy
 from catalogue import EXAMPLE_SPECIES
 from collections.abc import Iterable
-#from stqdm import stqdm
 import streamlit as st
 import pandas as pd
-#import time
+import threading
 
 
 
@@ -35,8 +34,8 @@ st.write("The payoff matrix below shows your reward for the different outcomes. 
          A higher score is better for the player.")
 df = pd.DataFrame({
     "Your Reward": ["You COOP", "You DEFECT"],
-    "Opponent COOPS": [PAYOFF_MATRIX[(Action.COOP, Action.COOP)][0], PAYOFF_MATRIX[(Action.DEFECT, Action.COOP)][0]],
-    "Opponent DEFECTS": [PAYOFF_MATRIX[(Action.COOP, Action.DEFECT)][0], PAYOFF_MATRIX[(Action.DEFECT, Action.DEFECT)][0]],
+    "Opponent COOPS": [PAYOFF_MATRIX.get_reward(Action.COOP, Action.COOP)[0], PAYOFF_MATRIX.get_reward(Action.DEFECT, Action.COOP)[0]],
+    "Opponent DEFECTS": [PAYOFF_MATRIX.get_reward(Action.COOP, Action.DEFECT)[0], PAYOFF_MATRIX.get_reward(Action.DEFECT, Action.DEFECT)[0]],
 }).set_index("Your Reward")
 st.table(df)
 st.info("*At the moment, you need to change `config.ini` to adjust with the payoff matrix.*")
@@ -90,19 +89,14 @@ if st.session_state.generation == 0:
 col1, col2, col3 = st.columns(3)
 
 
-if col1.button("Run 1 generation"):
-    st.session_state.generation += 1
-    st.session_state.population.do_generation(
-        matchup_rate=matchup_rate, 
-        mutation_probability=mutation_rate, 
-        mutation_strategies=[SPECIES[strategy] for strategy in species],
-        rounds=rounds, 
-        overall_food=overall_food,
-        can_mutate_parent=can_mutate_parent,
-    )
+# Lock is used to avoid threading issues with "weird errors" (like a KeyError 
+# when the key clearly existed) when clicking the button too quickly
+if 'lock' not in st.session_state:
+    st.session_state.lock = threading.Lock()
 
-if col2.button("Run 5 generations"):
-    for _ in range(5):
+
+if col1.button("Run 1 generation"):
+    with st.session_state.lock:
         st.session_state.generation += 1
         st.session_state.population.do_generation(
             matchup_rate=matchup_rate, 
@@ -113,9 +107,24 @@ if col2.button("Run 5 generations"):
             can_mutate_parent=can_mutate_parent,
         )
 
+if col2.button("Run 5 generations"):
+    for _ in range(5):
+        with st.session_state.lock:
+            st.session_state.generation += 1
+            st.session_state.population.do_generation(
+                matchup_rate=matchup_rate, 
+                mutation_probability=mutation_rate, 
+                mutation_strategies=[SPECIES[strategy] for strategy in species],
+                rounds=rounds, 
+                overall_food=overall_food,
+                can_mutate_parent=can_mutate_parent,
+            )
+
+
 if col3.button("Reset simulation"):
-    st.session_state.generation = 0
-    st.session_state.population = generate_new_population(species=[SPECIES[strategy] for strategy in species])
+    with st.session_state.lock:
+        st.session_state.generation = 0
+        st.session_state.population = generate_new_population(species=[SPECIES[strategy] for strategy in species])
 
 
 st.write(f"Generation: {st.session_state.generation}")

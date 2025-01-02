@@ -1,26 +1,51 @@
-from utils import Strategy, Action, History, round_probabilistically, PAYOFF_MATRIX, Player, flatten
+from utils import Strategy, Action, History, round_probabilistically, PayoffMatrix, Player, flatten
 from collections.abc import MutableSequence
 import pytest
 
 
-def test_payoff_matrix():
+@pytest.fixture
+def payoff_matrix_1():
+    return PayoffMatrix(3, 0, 5, 1)
+
+@pytest.fixture
+def payoff_matrix_2():
+    return PayoffMatrix(5, -5, 10, -10)
+
+@pytest.fixture
+def payoff_matrix_3():
+    return PayoffMatrix.from_config("config.ini")
+
+
+def test_payoff_matrix(payoff_matrix_1, payoff_matrix_2, payoff_matrix_3):
     # Make sure all 4 action combinations are in the payoff matrix
-    assert len(PAYOFF_MATRIX) == 4
-    assert (Action.COOP, Action.COOP) in PAYOFF_MATRIX, f"Didn't find COOP, COOP in payoff matrix"
-    assert (Action.COOP, Action.DEFECT) in PAYOFF_MATRIX, f"Didn't find COOP, DEFECT in payoff matrix"
-    assert (Action.DEFECT, Action.COOP) in PAYOFF_MATRIX, f"Didn't find DEFECT, COOP in payoff matrix"
-    assert (Action.DEFECT, Action.DEFECT) in PAYOFF_MATRIX, f"Didn't find DEFECT, DEFECT in payoff matrix"
-    # Assert types are correct
-    assert isinstance(PAYOFF_MATRIX, dict), f"PAYOFF_MATRIX should be a dict, but was {type(PAYOFF_MATRIX)}"
-    assert isinstance(PAYOFF_MATRIX[(Action.COOP, Action.COOP)], tuple), f"PAYOFF_MATRIX[(Action.COOP, Action.COOP)] should be a tuple, but was {type(PAYOFF_MATRIX[(Action.COOP, Action.COOP)])}"
-    assert isinstance(PAYOFF_MATRIX[(Action.COOP, Action.DEFECT)], tuple), f"PAYOFF_MATRIX[(Action.COOP, Action.DEFECT)] should be a tuple, but was {type(PAYOFF_MATRIX[(Action.COOP, Action.DEFECT)])}"
-    assert isinstance(PAYOFF_MATRIX[(Action.DEFECT, Action.COOP)], tuple), f"PAYOFF_MATRIX[(Action.DEFECT, Action.COOP)] should be a tuple, but was {type(PAYOFF_MATRIX[(Action.DEFECT, Action.COOP)])}"
-    assert isinstance(PAYOFF_MATRIX[(Action.DEFECT, Action.DEFECT)], tuple), f"PAYOFF_MATRIX[(Action.DEFECT, Action.DEFECT)] should be a tuple, but was {type(PAYOFF_MATRIX[(Action.DEFECT, Action.DEFECT)])}"
-    # Assert length of tuples is correct
-    assert len(PAYOFF_MATRIX[(Action.COOP, Action.COOP)]) == 2, f"PAYOFF_MATRIX[(Action.COOP, Action.COOP)] should be a tuple of length 2, but was {len(PAYOFF_MATRIX[(Action.COOP, Action.COOP)])}"
-    assert len(PAYOFF_MATRIX[(Action.COOP, Action.DEFECT)]) == 2, f"PAYOFF_MATRIX[(Action.COOP, Action.DEFECT)] should be a tuple of length 2, but was {len(PAYOFF_MATRIX[(Action.COOP, Action.DEFECT)])}"
-    assert len(PAYOFF_MATRIX[(Action.DEFECT, Action.COOP)]) == 2, f"PAYOFF_MATRIX[(Action.DEFECT, Action.COOP)] should be a tuple of length 2, but was {len(PAYOFF_MATRIX[(Action.DEFECT, Action.COOP)])}"
-    assert len(PAYOFF_MATRIX[(Action.DEFECT, Action.DEFECT)]) == 2, f"PAYOFF_MATRIX[(Action.DEFECT, Action.DEFECT)] should be a tuple of length 2, but was {len(PAYOFF_MATRIX[(Action.DEFECT, Action.DEFECT)])}"
+    for payoff_dict in [payoff_matrix_1.as_dict(), payoff_matrix_2.as_dict(), payoff_matrix_3.as_dict()]:
+        # Old legacy code for the dictionaries
+        assert len(payoff_dict) == 4
+        assert (Action.COOP, Action.COOP) in payoff_dict, f"Didn't find COOP, COOP in payoff matrix"
+        assert (Action.COOP, Action.DEFECT) in payoff_dict, f"Didn't find COOP, DEFECT in payoff matrix"
+        assert (Action.DEFECT, Action.COOP) in payoff_dict, f"Didn't find DEFECT, COOP in payoff matrix"
+        assert (Action.DEFECT, Action.DEFECT) in payoff_dict, f"Didn't find DEFECT, DEFECT in payoff matrix"
+        # Assert types are correct
+        assert isinstance(payoff_dict, dict), f"payoff_dict should be a dict, but was {type(payoff_dict)}"
+        assert isinstance(payoff_dict[(Action.COOP, Action.COOP)], tuple), f"payoff_dict[(Action.COOP, Action.COOP)] should be a tuple, but was {type(payoff_dict[(Action.COOP, Action.COOP)])}"
+        assert isinstance(payoff_dict[(Action.COOP, Action.DEFECT)], tuple), f"payoff_dict[(Action.COOP, Action.DEFECT)] should be a tuple, but was {type(payoff_dict[(Action.COOP, Action.DEFECT)])}"
+        assert isinstance(payoff_dict[(Action.DEFECT, Action.COOP)], tuple), f"payoff_dict[(Action.DEFECT, Action.COOP)] should be a tuple, but was {type(payoff_dict[(Action.DEFECT, Action.COOP)])}"
+        assert isinstance(payoff_dict[(Action.DEFECT, Action.DEFECT)], tuple), f"payoff_dict[(Action.DEFECT, Action.DEFECT)] should be a tuple, but was {type(payoff_dict[(Action.DEFECT, Action.DEFECT)])}"
+        # Assert length of tuples is correct
+        assert len(payoff_dict[(Action.COOP, Action.COOP)]) == 2, f"payoff_dict[(Action.COOP, Action.COOP)] should be a tuple of length 2, but was {len(payoff_dict[(Action.COOP, Action.COOP)])}"
+        assert len(payoff_dict[(Action.COOP, Action.DEFECT)]) == 2, f"payoff_dict[(Action.COOP, Action.DEFECT)] should be a tuple of length 2, but was {len(payoff_dict[(Action.COOP, Action.DEFECT)])}"
+        assert len(payoff_dict[(Action.DEFECT, Action.COOP)]) == 2, f"payoff_dict[(Action.DEFECT, Action.COOP)] should be a tuple of length 2, but was {len(payoff_dict[(Action.DEFECT, Action.COOP)])}"
+        assert len(payoff_dict[(Action.DEFECT, Action.DEFECT)]) == 2, f"payoff_dict[(Action.DEFECT, Action.DEFECT)] should be a tuple of length 2, but was {len(payoff_dict[(Action.DEFECT, Action.DEFECT)])}"
+
+    assert payoff_matrix_1.get_reward(Action.COOP, Action.COOP) == (3, 3)
+    assert payoff_matrix_1.get_reward(Action.COOP, Action.DEFECT) == (0, 5)
+    assert payoff_matrix_1.get_reward(Action.DEFECT, Action.COOP) == (5, 0)
+    assert payoff_matrix_1.get_reward(Action.DEFECT, Action.DEFECT) == (1, 1)
+
+    assert payoff_matrix_2.get_reward(Action.COOP, Action.COOP) == (5, 5)
+    assert payoff_matrix_2.get_reward(Action.COOP, Action.DEFECT) == (-5, 10)
+    assert payoff_matrix_2.get_reward(Action.DEFECT, Action.COOP) == (10, -5)
+    assert payoff_matrix_2.get_reward(Action.DEFECT, Action.DEFECT) == (-10, -10)
 
 
 def test_action():
@@ -112,7 +137,7 @@ def defect_class():
     return AlwaysDefect
 
 
-def test_player_basic_properties(player_coop, player_defect):
+def test_player_basic_properties(player_coop, player_defect, payoff_matrix_3):
     assert player_coop.strategy.decide(None) == Action.COOP
     assert player_defect.strategy.decide(None) == Action.DEFECT
 
@@ -126,8 +151,10 @@ def test_player_basic_properties(player_coop, player_defect):
     assert player_defect.most_recent_score == 0
 
     score1, score2 = player_coop.battle(player_defect, rounds=17)
-    assert score1 == PAYOFF_MATRIX[(Action.COOP, Action.DEFECT)][0]
-    assert score2 == PAYOFF_MATRIX[(Action.COOP, Action.DEFECT)][1]
+    # TODO! CHANGE THIS, BECAUSE THE battle METHOD WILL IN THE FUTURE NOT
+    # NECESSARILY USE payoff_matrix_3 (the one from config.ini)
+    assert score1 == payoff_matrix_3.as_dict()[(Action.COOP, Action.DEFECT)][0]
+    assert score2 == payoff_matrix_3.as_dict()[(Action.COOP, Action.DEFECT)][1]
 
 def test_player_offspring(player_coop, player_defect, coop_class, defect_class):
     offspring = player_coop.get_offspring(2)
@@ -170,13 +197,15 @@ def test_player_offspring(player_coop, player_defect, coop_class, defect_class):
     assert offspring[2].age == 0
 
 
-def test_player_change_strategy(player_coop, player_defect, defect_class):
+def test_player_change_strategy(player_coop, player_defect, defect_class, payoff_matrix_3):
     player_coop.change_strategy(defect_class())
     assert player_coop.strategy.decide(None) == Action.DEFECT
     assert player_coop.strategy_name == "AlwaysDefect"
     assert player_coop.age == 0
     assert player_coop.most_recent_score == 0
-    assert player_coop.battle(player_defect, rounds=17) == PAYOFF_MATRIX[(Action.DEFECT, Action.DEFECT)]
+    # TODO! CHANGE THIS, BECAUSE THE battle METHOD WILL IN THE FUTURE NOT
+    # NECESSARILY USE payoff_matrix_3 (the one from config.ini)
+    assert player_coop.battle(player_defect, rounds=17) == payoff_matrix_3.as_dict()[(Action.DEFECT, Action.DEFECT)]
 
 
 def test_flatten():
