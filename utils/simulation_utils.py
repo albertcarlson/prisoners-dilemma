@@ -369,6 +369,9 @@ class Population:
             for player in flatten(self.players)  # Include all generations (so we get 0 for extinct species, rather than missing)
         }
     
+    def get_top_species(self, top_n: int = 3, gen: int = -1) -> dict[str, int]:
+        return dict(sorted(self.get_population_counts(gen).items(), key=lambda x: x[1], reverse=True)[:top_n])
+    
     @property
     def generation(self) -> int:
         return len(self.players) - 1
@@ -380,6 +383,7 @@ class Population:
     @property
     def population_average_age(self) -> float:
         return sum(player.age for player in self.players[-1]) / self.population_size
+
 
     def do_generation(
         self,
