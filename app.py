@@ -152,3 +152,8 @@ if st.session_state.generation > 0:
     st.area_chart([st.session_state.population.get_population_counts(gen) for gen in range(1, st.session_state.generation)], x_label="Generation", y_label="Count") 
 
 
+
+# Add a top 3 table of the species with the highest population
+st.subheader("Top 3 species")
+top_3 = st.session_state.population.get_top_species(3)
+st.table(pd.DataFrame(list(top_3.items()), columns=["Strategy", "Current population"]).set_index("Strategy"))
