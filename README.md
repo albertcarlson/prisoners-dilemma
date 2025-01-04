@@ -3,29 +3,17 @@
 This repository contains a simulation of the prisoner's dilemma with various strategies, inspired by [this Veritasium video](https://www.youtube.com/watch?v=mScpHTIi-kM&t=995s), which is based on [Robert Axelrod's research](https://en.wikipedia.org/wiki/Robert_Axelrod).
 
 ## The Prisoner's Dilemma
-I've always found the prisoner's dilemma fascinating. Since the Nash Equilibrium is not the best outcome, what is then the "best" thing to do? That, of course, depends on what others are doing. But does there still exist a reasonable definition of a strategy being "oftentimes better" than others? Maybe we can simulate it to get a better intuition for this problem (or at least have fun)? Well... that is the purpose of this repository. To simulate an ecosystem where various strategies ("species") compete and grow or decline in numbers, and maybe go extinct.
+I've always found the prisoner's dilemma fascinating. Since the Nash Equilibrium is not the best outcome, what is then the "best" thing to do? That, of course, depends on what others are doing. But does there still exist a reasonable definition of a strategy being "oftentimes better" than others? Maybe we can simulate it to get a better intuition for this problem (or at least have fun)? Well... that is the purpose of this repository. To simulate an ecosystem where various strategies ("species") compete and grow or decline in numbers, and maybe go extinct. They play multiple rounds against each other, remembering the opponent's previous moves and acting accordingly (depending on their `Strategy`).
 
 You can change the `config.ini` file to change the rewards and penalties for each outcome (payoff matrix).
 
 ## Project Structure
 
-- `README.md`: This file.
 - `config.ini`: Adjust payoff matrix and starting population.
 - `catalogue/`: Contains the different prisoner's dilemma strategies ("species") that can be used in the simulation.
 - `utils/`: Contains utility functions and data types for the simulation, such as Strategy, Player and Population classes.
 - `tests/`: Contains functional, unit and integration tests for the simulation.
 - `app.py`: The main streamlit application for running the simulation.
-
-## Running the Simulation
-
-You need to have `uv` installed in your system. See instructions
-[here](https://docs.astral.sh/uv/getting-started/installation/).
-Thereafter, run 
-```sh
-uv run streamlit run app.py
-```
-to open the streamlit application with the simulation.
-`uv` will automatically take care of dependencies.
 
 ## Example
 
@@ -62,6 +50,17 @@ Tit-for-Tats for them to have enough others they could be productive with.
 (If you're wondering, the reason for the population increase around generation 30
 to 40 was because I increased the overall food available in hopes it would speed
 up the overtake of the Tit-for-Tats.)
+
+## Running the Simulation
+
+You need to have `uv` installed in your system. See instructions
+[here](https://docs.astral.sh/uv/getting-started/installation/).
+Thereafter, run 
+```sh
+uv run streamlit run app.py
+```
+to open the streamlit application with the simulation.
+`uv` will automatically take care of dependencies.
 
 ## Testing
 
