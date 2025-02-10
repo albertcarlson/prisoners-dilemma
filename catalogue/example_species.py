@@ -344,6 +344,16 @@ class TheSneakySnake(Strategy):
                 return DEFECT
             return COOP
 
+class Tomas(Strategy):
+    def decide(self, history: History) -> Action:
+        if len(history) == 0:
+            return COOP
+        if len(history) == 9:
+            return DEFECT
+        if history.opponent_moves[-1] == DEFECT:
+            return DEFECT
+        return COOP
+        
 
 
 
