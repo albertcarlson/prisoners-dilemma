@@ -195,6 +195,7 @@ FARUM_CAMP_SPECIES: dict[str, Strategy] = {
         Manslaughter(),
         Linnestad(),
         SpaghettiMedSmør(),
-        TheSneakySnake()
+        TheSneakySnake(),
+        Tomas()
     ]
 }
