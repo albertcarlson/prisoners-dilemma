@@ -1,5 +1,5 @@
 from utils import PAYOFF_MATRIX, STARTING_POPULATION, Action, Player, Population, Strategy, PayoffMatrix
-from catalogue import EXAMPLE_SPECIES
+from catalogue import EXAMPLE_SPECIES, FARUM_CAMP_SPECIES
 from collections.abc import Iterable
 import streamlit as st
 import pandas as pd
@@ -7,7 +7,8 @@ import threading
 
 
 
-SPECIES: dict[str, Strategy] = EXAMPLE_SPECIES  # Change this if you want to use a different set of species
+# Change this if you want to use a different set of species
+SPECIES: dict[str, Strategy] = EXAMPLE_SPECIES#FARUM_CAMP_SPECIES
 
 
 
