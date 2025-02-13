@@ -16,12 +16,24 @@ DEFECT = Action.DEFECT
 
 
 class CaveMom(Strategy):
+    """
+    *Note that this strategy should only be used with rounds set to 10.*
+    
+    Plays the following pattern: CCCCDCCDCD.
+    """
     def decide(self, history: History) -> Action:
         if len(history) in (4, 7, 9):
             return DEFECT
         return COOP
     
 class Noah(Strategy):
+    """
+    *Note that this strategy should only be used with rounds set to 10.*
+    
+    Cooperates in round 1, defects in rounds 8-10.
+    In rounds 2-7, it defects with probability (m+2)/(N+2), where N is the round number
+    and m is the number of times the opponent defected in the past. E.g. if opponent
+    cooperated in round 1, then Noah defects in round 2 with probability 2/3."""
     def decide(self, history: History) -> Action:
         if len(history) == 0:
             return COOP
@@ -34,10 +46,12 @@ class Noah(Strategy):
         return COOP
 
 class GreedIsGood(Strategy):
+    """Always defects."""
     def decide(self, history: History) -> Action:
         return DEFECT
 
 class TheGrudgeholder(Strategy):
+    """Cooperates until opponent has defected twice, then always defects."""
     def decide(self, history: History) -> Action:
         if history.opponent_moves.count(DEFECT) >= 2:
             return DEFECT
@@ -45,12 +59,17 @@ class TheGrudgeholder(Strategy):
             return COOP
 
 class Louise(Strategy):
+    """
+    *Note that this strategy should only be used with rounds set to 10.*
+    
+    Cooperates round 1-5, then defects rounds 6-10."""
     def decide(self, history: History) -> Action:
         if len(history) < 5:
             return COOP
         return DEFECT
     
 class NanaChrissyboy(Strategy):
+    """Cooperates in round 1, defects forever after."""
     def decide(self, history: History) -> Action:
         if len(history) == 0:
             return COOP
@@ -75,6 +94,11 @@ class TheBook(Strategy):
         return history.opponent_moves[-1]
     
 class DiaDeLosMuertos(Strategy):
+    """
+    *Note that this strategy should only be used with rounds set to 10.*
+    
+    Defects in round N with probability N/10. I.e. 40% in round 4 and 100% in round 10.
+    """
     def decide(self, history: History) -> Action:
         turn_number = len(history) + 1
         if random.random() < turn_number / 10:
@@ -82,12 +106,25 @@ class DiaDeLosMuertos(Strategy):
         return COOP
 
 class Random(Strategy):
+    """
+    *Note that this strategy should only be used with rounds set to 10.*
+    
+    Plays the following pattern: CCCCDDDCDC.
+    """
     def decide(self, history: History) -> Action:
         if len(history) in (4, 5, 6, 8):
             return COOP
         return DEFECT
     
 class NinePctFruktsaft(Strategy):
+    """
+    *Note that this strategy should only be used with rounds set to 10.*
+    
+    Cooperates in round 1, defects in rounds 8-10. Plays Tit for Tat
+    in rounds 2-7 (i.e. repeats opponent's last move).
+
+    *(Same as NinePctFruktsaft, TrunkatedTFT and Linnestad)*
+    """
     def decide(self, history: History) -> Action:
         if len(history) == 0:
             return COOP
@@ -106,6 +143,14 @@ class ThePsychopath(Strategy):
         return COOP
     
 class TrunkatedTFT(Strategy):
+    """
+    *Note that this strategy should only be used with rounds set to 10.*
+    
+    Cooperates in round 1, defects in rounds 8-10. Plays Tit for Tat
+    in rounds 2-7 (i.e. repeats opponent's last move).
+
+    *(Same as NinePctFruktsaft, TrunkatedTFT and Linnestad)*
+    """
     def decide(self, history: History) -> Action:
         if len(history) == 0:
             return COOP
@@ -130,6 +175,14 @@ class Manslaughter(Strategy):
         return DEFECT
 
 class Linnestad(Strategy):
+    """
+    *Note that this strategy should only be used with rounds set to 10.*
+    
+    Cooperates in round 1, defects in rounds 8-10. Plays Tit for Tat
+    in rounds 2-7 (i.e. repeats opponent's last move).
+
+    *(Same as NinePctFruktsaft, TrunkatedTFT and Linnestad)*
+    """
     def decide(self, history: History) -> Action:
         if len(history) == 0:
             return COOP
